@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sistema de Solicitudes — Seminario Mayor Santo Tomás de Aquino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Source Sans 3',sans-serif;background:#f5f0e8;min-height:100vh;background-image:radial-gradient(ellipse at 20% 10%,rgba(139,110,75,.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 90%,rgba(94,74,54,.07) 0%,transparent 50%)}
+.hidden{display:none!important}
+
+/* LOADING */
+.loading-overlay{position:fixed;inset:0;background:rgba(245,240,232,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px}
+.loading-spinner{width:36px;height:36px;border:3px solid #d5c9b5;border-top-color:#1a1200;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-family:'Libre Baskerville',serif;font-size:14px;color:#5a4530}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{background:#fff;border-radius:12px;box-shadow:0 8px 40px rgba(44,31,14,.15);overflow:hidden;width:100%;max-width:440px}
+.login-header{background:#1a1200;color:#f5f0e8;padding:28px 32px 24px;text-align:center}
+.login-logo{width:90px;height:90px;object-fit:contain;margin-bottom:10px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
+.login-seminary{font-family:'Libre Baskerville',serif;font-size:16px;letter-spacing:.4px;margin-bottom:2px;line-height:1.3}
+.login-tagline{font-size:11px;color:#c8a85a;letter-spacing:1.8px;text-transform:uppercase}
+.login-body{padding:28px 32px}
+.login-tabs{display:flex;border:1px solid #e0d5c5;border-radius:8px;overflow:hidden;margin-bottom:24px}
+.login-tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:#8b6a3e;border:none;font-family:'Source Sans 3',sans-serif;transition:all .2s;letter-spacing:.5px}
+.login-tab.active{background:#1a1200;color:#f5f0e8}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:600;color:#5a4530;letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px}
+.field select,.field input,.field textarea{width:100%;padding:10px 12px;border:1px solid #d5c9b5;border-radius:6px;font-size:14px;color:#2c1f0e;font-family:'Source Sans 3',sans-serif;background:#faf8f4;transition:border-color .2s;outline:none}
+.field select:focus,.field input:focus,.field textarea:focus{border-color:#8b6a3e;background:#fff}
+.field textarea{resize:vertical;min-height:90px}
+.field-hint{font-size:11px;color:#a08060;margin-top:4px}
+.btn-primary{width:100%;padding:12px;background:#1a1200;color:#f5f0e8;border:none;border-radius:8px;font-size:14px;font-weight:600;font-family:'Source Sans 3',sans-serif;cursor:pointer;letter-spacing:.5px;transition:background .2s}
+.btn-primary:hover{background:#2c1f0e}
+.btn-primary:disabled{background:#8b7a5a;cursor:not-allowed}
+.error-msg{background:#ffebee;color:#c62828;border:1px solid #ef9a9a;border-radius:6px;padding:10px 14px;font-size:13px;margin-bottom:14px}
+.success-msg{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:6px;padding:10px 14px;font-size:13px;margin-bottom:14px}
+
+/* HEADER */
+.header{background:#1a1200;color:#f5f0e8;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #8b6a3e}
+.header-brand{display:flex;align-items:center;gap:10px}
+.header-logo{width:42px;height:42px;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
+.header-title{font-family:'Libre Baskerville',serif;font-size:15px;letter-spacing:.4px;line-height:1.2}
+.header-subtitle{font-size:10px;color:#c8a85a;letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+.btn-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#f5f0e8;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px;font-family:'Source Sans 3',sans-serif;transition:background .2s}
+.btn-logout:hover{background:rgba(255,255,255,.18)}
+
+/* MAIN */
+.main{padding:22px;max-width:900px;margin:0 auto}
+.section-title{font-family:'Libre Baskerville',serif;font-size:20px;color:#2c1f0e;margin-bottom:4px}
+.section-sub{font-size:13px;color:#8b6a3e;margin-bottom:20px}
+.card{background:#fff;border-radius:10px;box-shadow:0 2px 16px rgba(44,31,14,.08);padding:22px;margin-bottom:18px}
+.card-title{font-family:'Libre Baskerville',serif;font-size:15px;color:#2c1f0e;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #ede5d8}
+
+/* type pills */
+.type-pills{display:flex;gap:8px;flex-wrap:wrap}
+.type-pill{padding:7px 14px;border-radius:20px;border:1.5px solid #d5c9b5;background:#fff;font-size:13px;cursor:pointer;font-family:'Source Sans 3',sans-serif;font-weight:500;transition:all .2s;color:#5a4530}
+.type-pill.selected{border-color:#1a1200;background:#1a1200;color:#f5f0e8}
+.btn-submit{background:#5a3e1b;color:#f5f0e8;border:none;border-radius:8px;padding:10px 22px;font-size:14px;font-weight:600;font-family:'Source Sans 3',sans-serif;cursor:pointer;transition:background .2s}
+.btn-submit:hover{background:#3d2b14}
+.btn-submit:disabled{background:#a08060;cursor:not-allowed}
+
+/* request items */
+.req-list{display:flex;flex-direction:column;gap:10px}
+.req-item{border:1px solid #ede5d8;border-radius:8px;padding:12px 14px;display:flex;align-items:flex-start;gap:12px;background:#faf8f4}
+.req-type-icon{font-size:20px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#f0e8da;flex-shrink:0}
+.req-info{flex:1;min-width:0}
+.req-top{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.req-type-label{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase}
+.req-date{font-size:11px;color:#a08060}
+.req-justification{font-size:13px;color:#4a3728;line-height:1.5}
+.req-date-perm{font-size:12px;color:#6a5040;margin-top:4px}
+.req-comment{font-size:12px;color:#5a4530;font-style:italic;margin-top:6px;padding:6px 10px;background:rgba(0,0,0,.04);border-radius:4px}
+.status-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:12px;letter-spacing:.4px;flex-shrink:0}
+
+/* admin stats */
+.admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;border-radius:8px;padding:14px;text-align:center;box-shadow:0 2px 10px rgba(44,31,14,.07)}
+.stat-num{font-family:'Libre Baskerville',serif;font-size:28px;line-height:1}
+.stat-label{font-size:11px;color:#8b6a3e;text-transform:uppercase;letter-spacing:.8px;margin-top:4px}
+
+/* admin tabs */
+.admin-tabs{display:flex;gap:0;border:1px solid #d5c9b5;border-radius:8px;overflow:hidden;margin-bottom:18px}
+.admin-tab{flex:1;padding:9px 12px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#8b6a3e;border:none;font-family:'Source Sans 3',sans-serif;transition:all .2s;letter-spacing:.4px;border-right:1px solid #d5c9b5}
+.admin-tab:last-child{border-right:none}
+.admin-tab.active{background:#1a1200;color:#f5f0e8}
+
+.filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filter-btn{padding:6px 14px;border-radius:16px;border:1px solid #d5c9b5;background:#fff;font-size:12px;cursor:pointer;font-family:'Source Sans 3',sans-serif;font-weight:500;color:#5a4530;transition:all .2s}
+.filter-btn.active{background:#1a1200;color:#f5f0e8;border-color:#1a1200}
+.admin-req-item{border:1px solid #ede5d8;border-radius:10px;padding:14px;background:#fff;margin-bottom:10px;box-shadow:0 1px 6px rgba(44,31,14,.05)}
+.student-name{font-weight:600;font-size:14px;color:#2c1f0e}
+.admin-req-meta{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.admin-req-justif{font-size:13px;color:#4a3728;line-height:1.5;margin:8px 0}
+.action-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;border-top:1px solid #ede5d8;padding-top:12px}
+.comment-input{flex:1;min-width:150px;padding:7px 10px;border:1px solid #d5c9b5;border-radius:6px;font-size:13px;font-family:'Source Sans 3',sans-serif;outline:none;background:#faf8f4}
+.comment-input:focus{border-color:#8b6a3e}
+.btn-approve{padding:7px 14px;background:#2e7d32;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;font-family:'Source Sans 3',sans-serif;cursor:pointer;transition:background .2s}
+.btn-approve:hover{background:#1b5e20}
+.btn-reject{padding:7px 14px;background:#c62828;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;font-family:'Source Sans 3',sans-serif;cursor:pointer;transition:background .2s}
+.btn-reject:hover{background:#8b0000}
+.empty-state{text-align:center;padding:36px 20px;color:#a08060}
+.empty-icon{font-size:36px;margin-bottom:8px}
+.empty-text{font-size:14px}
+
+/* HISTORIAL */
+.history-search-row{display:flex;gap:10px;margin-bottom:16px;align-items:center}
+.history-search{flex:1;padding:9px 12px;border:1px solid #d5c9b5;border-radius:6px;font-size:14px;font-family:'Source Sans 3',sans-serif;outline:none;background:#faf8f4;color:#2c1f0e}
+.history-search:focus{border-color:#8b6a3e}
+.seminarian-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:20px}
+.seminarian-card{border:1px solid #ede5d8;border-radius:8px;padding:12px 14px;background:#faf8f4;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px}
+.seminarian-card:hover{border-color:#8b6a3e;background:#fff;box-shadow:0 2px 10px rgba(44,31,14,.1)}
+.seminarian-card.selected{border-color:#1a1200;background:#fff;box-shadow:0 2px 12px rgba(26,18,0,.12)}
+.sem-avatar{width:36px;height:36px;border-radius:50%;background:#1a1200;color:#f5f0e8;display:flex;align-items:center;justify-content:center;font-family:'Libre Baskerville',serif;font-size:14px;font-weight:700;flex-shrink:0}
+.sem-name{font-size:13px;font-weight:600;color:#2c1f0e;line-height:1.3}
+.sem-stats{font-size:11px;color:#8b6a3e;margin-top:2px}
+.history-panel{background:#fff;border:1px solid #ede5d8;border-radius:10px;padding:18px;box-shadow:0 2px 12px rgba(44,31,14,.07)}
+.history-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #ede5d8}
+.history-avatar{width:48px;height:48px;border-radius:50%;background:#1a1200;color:#f5f0e8;display:flex;align-items:center;justify-content:center;font-family:'Libre Baskerville',serif;font-size:18px;font-weight:700;flex-shrink:0}
+.history-name{font-family:'Libre Baskerville',serif;font-size:16px;color:#2c1f0e}
+.history-meta{font-size:12px;color:#8b6a3e;margin-top:2px}
+.history-summary{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.hsummary-pill{padding:5px 12px;border-radius:16px;font-size:12px;font-weight:600;letter-spacing:.3px}
+.timeline-item{display:flex;gap:12px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f0e8da}
+.timeline-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.timeline-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.timeline-body{flex:1}
+.timeline-type{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.timeline-text{font-size:13px;color:#4a3728;line-height:1.5;margin-top:2px}
+.timeline-meta{font-size:11px;color:#a08060;margin-top:3px}
+
+@media(max-width:500px){.main{padding:14px}.admin-stats{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Cargando sistema...</div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login-wrap hidden">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="login-seminary">Seminario Mayor<br>Santo Tomás de Aquino</div>
+      <div class="login-tagline">Sistema de Solicitudes</div>
+    </div>
+    <div class="login-body">
+      <div class="login-tabs">
+        <button class="login-tab active" id="tabStudent" onclick="switchTab('student')">Seminarista</button>
+        <button class="login-tab" id="tabAdmin" onclick="switchTab('admin')">Administrador</button>
+      </div>
+      <div id="loginError" class="error-msg hidden"></div>
+
+      <!-- STUDENT LOGIN -->
+      <div id="studentFields">
+        <div class="field">
+          <label>Tu nombre</label>
+          <select id="selectStudent">
+            <option value="">— Selecciona tu nombre —</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input type="password" id="studentPass" placeholder="Tu contraseña"/>
+          <div class="field-hint">Usa la contraseña que te asignaron</div>
+        </div>
+      </div>
+
+      <!-- ADMIN LOGIN -->
+      <div id="adminFields" class="hidden">
+        <div class="field">
+          <label>Correo electrónico</label>
+          <input type="email" id="adminEmail" placeholder="admin@seminario.org"/>
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input type="password" id="adminPass" placeholder="Contraseña de administrador"/>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="loginBtn" onclick="doLogin()">Ingresar al sistema</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen" class="hidden">
+  <div class="header">
+    <div class="header-brand">
+      <div>
+        <div class="header-title">Seminario Mayor Sto. Tomás</div>
+        <div class="header-subtitle" id="headerSubtitle">Sistema de Solicitudes</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">Salir</button>
+  </div>
+
+  <!-- STUDENT VIEW -->
+  <div id="studentView" class="hidden">
+    <div class="main">
+      <div class="section-title" id="welcomeMsg">Bienvenido</div>
+      <div class="section-sub">Gestiona tus solicitudes desde aquí</div>
+
+      <div class="card">
+        <div class="card-title">Nueva solicitud</div>
+        <div id="formSuccess" class="success-msg hidden">✅ Solicitud enviada correctamente.</div>
+        <div class="field">
+          <label>Tipo de solicitud</label>
+          <div class="type-pills">
+            <button class="type-pill selected" onclick="selectType(this,'Permiso')">🚪 Permiso</button>
+            <button class="type-pill" onclick="selectType(this,'Necesidad')">🙏 Necesidad</button>
+            <button class="type-pill" onclick="selectType(this,'Propuesta')">💡 Propuesta</button>
+          </div>
+          <input type="hidden" id="selectedType" value="Permiso"/>
+        </div>
+        <div class="field">
+          <label>Fecha solicitada <span style="font-weight:400;color:#a08060">(opcional, solo para permisos)</span></label>
+          <input type="date" id="reqDate"/>
+        </div>
+        <div class="field">
+          <label>Justificación</label>
+          <textarea id="justification" placeholder="Describe el motivo de tu permiso..."></textarea>
+        </div>
+        <button class="btn-submit" id="submitBtn" onclick="submitRequest()">Enviar solicitud</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title" id="myReqTitle">📋 Mis solicitudes</div>
+        <div id="myReqList"><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Cargando...</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN VIEW -->
+  <div id="adminView" class="hidden">
+    <div class="main">
+      <div class="section-title">Panel de Administración</div>
+      <div class="section-sub">Gestión de solicitudes del seminario</div>
+
+      <div class="admin-stats">
+        <div class="stat-card"><div class="stat-num" id="statPending">0</div><div class="stat-label">Pendientes</div></div>
+        <div class="stat-card"><div class="stat-num" id="statApproved">0</div><div class="stat-label">Aprobadas</div></div>
+        <div class="stat-card"><div class="stat-num" id="statRejected">0</div><div class="stat-label">Rechazadas</div></div>
+      </div>
+
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="switchAdminTab('solicitudes',this)">Solicitudes</button>
+        <button class="admin-tab" onclick="switchAdminTab('historial',this)">Historial</button>
+      </div>
+
+      <div id="panelSolicitudes">
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="setFilter('todos',this)">Todas</button>
+          <button class="filter-btn" onclick="setFilter('pendiente',this)">⏳ Pendientes</button>
+          <button class="filter-btn" onclick="setFilter('aprobado',this)">✅ Aprobadas</button>
+          <button class="filter-btn" onclick="setFilter('rechazado',this)">❌ Rechazadas</button>
+        </div>
+        <div id="adminReqList"></div>
+      </div>
+
+      <div id="panelHistorial" class="hidden">
+        <div class="history-search-row">
+          <input class="history-search" id="histSearchInput" placeholder="Buscar seminarista..." oninput="renderSeminarianGrid()"/>
+        </div>
+        <div class="seminarian-grid" id="seminarianGrid"></div>
+        <div id="historialDetail" class="hidden"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── SUPABASE CONFIG ───────────────────────────────────────────────────────────
+const SUPABASE_URL = "https://yisjmtejpokkvupohkhd.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlpc2ptdGVqcG9ra3Z1cG9oa2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzg3MDEsImV4cCI6MjA5NDcxNDcwMX0.lBvH612ohhQVZdYnlcl6CKwVGJinZ6_Lnk6w8M495ns";
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ─── STUDENTS LIST ─────────────────────────────────────────────────────────────
+// email = studentId@seminary.local (used as Supabase Auth email)
+// Los estudiantes usan su ID como "email" internamente
+const STUDENTS = [
+  {id:"s01", name:"Alfenyer Alfonso Fernández Luzardo"},
+  {id:"s02", name:"Cesar David Petit Hansen"},
+  {id:"s03", name:"Mario José Soto Villasmil"},
+  {id:"s04", name:"Yorby Javier Suárez Suárez"},
+  {id:"s05", name:"Jorge Reyes"},
+  {id:"s06", name:"Osmán José Vargas Quintero"},
+  {id:"s07", name:"Luis Andrés Olivares Portillo"},
+  {id:"s08", name:"Rances Isaac Mercado Osorio"},
+  {id:"s09", name:"Luis Ángel Benítez Moran"},
+  {id:"s10", name:"Elio Barboza"},
+  {id:"s11", name:"Víctor Julio Suárez"},
+  {id:"s12", name:"Yorvi Jose Sierra Lopez"},
+  {id:"s13", name:"Luis Carlos Polanco Fernández"},
+  {id:"s14", name:"José Acosta"},
+  {id:"s15", name:"Rixio García"},
+  {id:"s16", name:"Jesús Tudares"},
+  {id:"s17", name:"Jorge Luis Villalobos González"},
+  {id:"s18", name:"Nixon Torrealba"},
+  {id:"s19", name:"Jossué Alejandro Hernández Miquilena"},
+  {id:"s20", name:"Paul David Urdaneta Berrueta"},
+  {id:"s21", name:"Ángel de Jesús Machado Villalobos"},
+  {id:"s22", name:"Gregori José García Hernández"},
+  {id:"s23", name:"Israel Junior Barboza Pérez"},
+  {id:"s24", name:"Armando de Jesús Celis Prieto"},
+  {id:"s25", name:"Ricardo Andrés Márquez Colina"},
+  {id:"s26", name:"Andrés Alfonso Araviche Chiquito"},
+  {id:"s27", name:"Dany Rafael Araujo Guedez"},
+  {id:"s28", name:"Ricardo José Morillo Medina"},
+  {id:"s29", name:"Alejandro Rubio"},
+  {id:"s30", name:"Jose Eloy Castillo Pirela"},
+  {id:"s31", name:"José Miguel Sierra Nava"},
+];
+
+const TYPE_CFG = {
+  Permiso:   {icon:"🚪", color:"#5c6bc0"},
+  Necesidad: {icon:"🙏", color:"#8d6e63"},
+  Propuesta: {icon:"💡", color:"#00838f"},
+};
+const STATUS_CFG = {
+  pendiente: {label:"Pendiente", color:"#d4a017", bg:"#fef9e7", icon:"⏳"},
+  aprobado:  {label:"Aprobado",  color:"#2e7d32", bg:"#e8f5e9", icon:"✅"},
+  rechazado: {label:"Rechazado", color:"#c62828", bg:"#ffebee", icon:"❌"},
+};
+
+// ─── STATE ─────────────────────────────────────────────────────────────────────
+let currentSession = null;  // {role, student?, supabaseUser}
+let currentFilter = "todos";
+let currentAdminTab = "solicitudes";
+let selectedSeminarianId = null;
+let realtimeChannel = null;
+
+// ─── HELPERS ───────────────────────────────────────────────────────────────────
+function initials(name) {
+  const parts = name.trim().split(" ");
+  return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
+}
+function showLoading(msg) {
+  document.getElementById("loadingOverlay").classList.remove("hidden");
+  document.querySelector(".loading-text").textContent = msg || "Cargando...";
+}
+function hideLoading() {
+  document.getElementById("loadingOverlay").classList.add("hidden");
+}
+function showError(msg) {
+  const el = document.getElementById("loginError");
+  el.textContent = "⚠️ " + msg;
+  el.classList.remove("hidden");
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────────
+(async function init() {
+  // Populate student dropdown
+  const sel = document.getElementById("selectStudent");
+  STUDENTS.forEach(s => {
+    const o = document.createElement("option");
+    o.value = s.id; o.textContent = s.name; sel.appendChild(o);
+  });
+
+  // Check existing session
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    await handleAuthSession(session);
+  } else {
+    hideLoading();
+    document.getElementById("loginScreen").classList.remove("hidden");
+  }
+})();
+
+// ─── AUTH ──────────────────────────────────────────────────────────────────────
+let activeTab = "student";
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById("tabStudent").classList.toggle("active", tab==="student");
+  document.getElementById("tabAdmin").classList.toggle("active", tab==="admin");
+  document.getElementById("studentFields").classList.toggle("hidden", tab!=="student");
+  document.getElementById("adminFields").classList.toggle("hidden", tab!=="admin");
+  document.getElementById("loginBtn").textContent = tab==="student" ? "Ingresar al sistema" : "Acceder como administrador";
+  document.getElementById("loginError").classList.add("hidden");
+}
+
+async function doLogin() {
+  document.getElementById("loginError").classList.add("hidden");
+  const btn = document.getElementById("loginBtn");
+  btn.disabled = true;
+  btn.textContent = "Verificando...";
+
+  try {
+    if (activeTab === "student") {
+      const id = document.getElementById("selectStudent").value;
+      const pass = document.getElementById("studentPass").value;
+      if (!id) { showError("Selecciona tu nombre."); return; }
+      if (!pass) { showError("Ingresa tu contraseña."); return; }
+
+      // Student email format: id@seminary.local
+      const email = id + "@seminary.local";
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+      if (error) {
+        // If user doesn't exist yet, try to sign up (first time)
+        if (error.message.includes("Invalid login credentials")) {
+          showError("Contraseña incorrecta. Contacta al administrador.");
+        } else {
+          showError(error.message);
+        }
+        return;
+      }
+      const student = STUDENTS.find(s => s.id === id);
+      currentSession = { role: "student", student, supabaseUser: data.user };
+      await handleAuthSession(data.session);
+
+    } else {
+      const email = document.getElementById("adminEmail").value.trim();
+      const pass = document.getElementById("adminPass").value;
+      if (!email || !pass) { showError("Completa todos los campos."); return; }
+
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+      if (error) { showError("Credenciales incorrectas."); return; }
+      currentSession = { role: "admin", supabaseUser: data.user };
+      await handleAuthSession(data.session);
+    }
+  } finally {
+    btn.disabled = false;
+    switchTab(activeTab); // restore button text
+  }
+}
+
+async function handleAuthSession(session) {
+  hideLoading();
+  const user = session.user;
+
+  // Determine role by email
+  const isStudent = user.email.endsWith("@seminary.local");
+  const studentId = isStudent ? user.email.replace("@seminary.local","") : null;
+  const student = isStudent ? STUDENTS.find(s => s.id === studentId) : null;
+
+  // Check admin via user metadata or email
+  const isAdmin = !isStudent;
+
+  if (isStudent && student) {
+    currentSession = { role:"student", student, supabaseUser: user };
+    document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("appScreen").classList.remove("hidden");
+    showStudentView();
+    subscribeRealtime();
+  } else if (isAdmin) {
+    currentSession = { role:"admin", supabaseUser: user };
+    document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("appScreen").classList.remove("hidden");
+    showAdminView();
+    subscribeRealtime();
+  } else {
+    await sb.auth.signOut();
+    document.getElementById("loginScreen").classList.remove("hidden");
+    showError("Usuario no reconocido.");
+  }
+}
+
+async function doLogout() {
+  showLoading("Cerrando sesión...");
+  if (realtimeChannel) { sb.removeChannel(realtimeChannel); realtimeChannel = null; }
+  await sb.auth.signOut();
+  currentSession = null;
+  document.getElementById("appScreen").classList.add("hidden");
+  document.getElementById("studentView").classList.add("hidden");
+  document.getElementById("adminView").classList.add("hidden");
+  document.getElementById("loginScreen").classList.remove("hidden");
+  document.getElementById("studentPass").value = "";
+  document.getElementById("adminPass").value = "";
+  document.getElementById("adminEmail").value = "";
+  document.getElementById("selectStudent").value = "";
+  document.getElementById("loginError").classList.add("hidden");
+  hideLoading();
+}
+
+// ─── REALTIME ──────────────────────────────────────────────────────────────────
+function subscribeRealtime() {
+  if (realtimeChannel) sb.removeChannel(realtimeChannel);
+  realtimeChannel = sb.channel('requests-changes')
+    .on('postgres_changes', { event:'*', schema:'public', table:'requests' }, () => {
+      if (currentSession?.role === "student") renderMyRequests();
+      else if (currentSession?.role === "admin") {
+        renderAdminRequests();
+        if (currentAdminTab === "historial" && selectedSeminarianId) renderHistorialDetail(selectedSeminarianId);
+        renderSeminarianGrid();
+      }
+    })
+    .subscribe();
+}
+
+// ─── STUDENT ───────────────────────────────────────────────────────────────────
+function showStudentView() {
+  const s = currentSession.student;
+  document.getElementById("headerSubtitle").textContent = "Seminarista · " + s.name;
+  document.getElementById("welcomeMsg").textContent = "Bienvenido, " + s.name;
+  document.getElementById("studentView").classList.remove("hidden");
+  document.getElementById("adminView").classList.add("hidden");
+  renderMyRequests();
+}
+
+function selectType(btn, type) {
+  document.querySelectorAll(".type-pill").forEach(p => p.classList.remove("selected"));
+  btn.classList.add("selected");
+  document.getElementById("selectedType").value = type;
+  const ta = document.getElementById("justification");
+  ta.placeholder = type === "Permiso" ? "Describe el motivo de tu permiso..."
+    : type === "Necesidad" ? "Describe tu necesidad..."
+    : "Describe tu propuesta...";
+}
+
+async function submitRequest() {
+  const justification = document.getElementById("justification").value.trim();
+  if (!justification) return;
+  const s = currentSession.student;
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true; btn.textContent = "Enviando...";
+
+  const { error } = await sb.from("requests").insert({
+    student_id: s.id,
+    student_name: s.name,
+    type: document.getElementById("selectedType").value,
+    justification,
+    date: document.getElementById("reqDate").value || null,
+    status: "pendiente",
+    comment: "",
+  });
+
+  btn.disabled = false; btn.textContent = "Enviar solicitud";
+  if (error) { alert("Error al enviar: " + error.message); return; }
+
+  document.getElementById("justification").value = "";
+  document.getElementById("reqDate").value = "";
+  const succ = document.getElementById("formSuccess");
+  succ.classList.remove("hidden");
+  setTimeout(() => succ.classList.add("hidden"), 3000);
+  renderMyRequests();
+}
+
+async function renderMyRequests() {
+  const s = currentSession.student;
+  const { data: all, error } = await sb.from("requests")
+    .select("*")
+    .eq("student_id", s.id)
+    .order("created_at", { ascending: false });
+
+  if (error) { console.error(error); return; }
+  document.getElementById("myReqTitle").textContent = `📋 Mis solicitudes (${all.length})`;
+  const container = document.getElementById("myReqList");
+  if (!all.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Aún no tienes solicitudes enviadas.</div></div>`;
+    return;
+  }
+  container.innerHTML = `<div class="req-list">${all.map(r => {
+    const st = STATUS_CFG[r.status];
+    const tp = TYPE_CFG[r.type];
+    const d = new Date(r.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"short",year:"numeric"});
+    const datePerm = r.date ? `<div class="req-date-perm">📅 ${new Date(r.date+"T12:00:00").toLocaleDateString("es-ES",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}</div>` : "";
+    const comment = r.comment ? `<div class="req-comment">💬 Padre: "${r.comment}"</div>` : "";
+    return `<div class="req-item">
+      <div class="req-type-icon">${tp.icon}</div>
+      <div class="req-info">
+        <div class="req-top">
+          <span class="req-type-label" style="color:${tp.color}">${r.type}</span>
+          <span class="status-badge" style="background:${st.bg};color:${st.color}">${st.icon} ${st.label}</span>
+          <span class="req-date">${d}</span>
+        </div>
+        <div class="req-justification">${r.justification}</div>
+        ${datePerm}${comment}
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+// ─── ADMIN ─────────────────────────────────────────────────────────────────────
+function showAdminView() {
+  document.getElementById("headerSubtitle").textContent = "Administrador";
+  document.getElementById("adminView").classList.remove("hidden");
+  document.getElementById("studentView").classList.add("hidden");
+  renderAdminRequests();
+}
+
+function switchAdminTab(tab, btn) {
+  currentAdminTab = tab;
+  document.querySelectorAll(".admin-tab").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("panelSolicitudes").classList.toggle("hidden", tab !== "solicitudes");
+  document.getElementById("panelHistorial").classList.toggle("hidden", tab !== "historial");
+  if (tab === "historial") renderSeminarianGrid();
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderAdminRequests();
+}
+
+async function renderAdminRequests() {
+  const { data: all, error } = await sb.from("requests")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) { console.error(error); return; }
+
+  document.getElementById("statPending").textContent  = all.filter(r=>r.status==="pendiente").length;
+  document.getElementById("statApproved").textContent = all.filter(r=>r.status==="aprobado").length;
+  document.getElementById("statRejected").textContent = all.filter(r=>r.status==="rechazado").length;
+
+  const filtered = currentFilter === "todos" ? all : all.filter(r => r.status === currentFilter);
+  const container = document.getElementById("adminReqList");
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No hay solicitudes en esta categoría.</div></div>`;
+    return;
+  }
+  container.innerHTML = filtered.map(r => {
+    const st = STATUS_CFG[r.status];
+    const tp = TYPE_CFG[r.type];
+    const d = new Date(r.created_at).toLocaleDateString("es-ES",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+    const datePerm = r.date ? ` · Fecha solicitada: ${new Date(r.date+"T12:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"long",year:"numeric"})}` : "";
+    const comment = r.comment ? `<div class="req-comment" style="margin-top:4px">💬 Comentario: "${r.comment}"</div>` : "";
+    const actions = r.status === "pendiente" ? `
+      <div class="action-row">
+        <input class="comment-input" id="cmt_${r.id}" placeholder="Comentario opcional para el seminarista..."/>
+        <button class="btn-approve" onclick="decide('${r.id}','aprobado')">✅ Aprobar</button>
+        <button class="btn-reject"  onclick="decide('${r.id}','rechazado')">❌ Rechazar</button>
+      </div>` : "";
+    return `<div class="admin-req-item">
+      <div class="admin-req-meta">
+        <span style="font-size:18px">${tp.icon}</span>
+        <span class="student-name">${r.student_name}</span>
+        <span class="req-type-label" style="color:${tp.color};font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase">${r.type}</span>
+        <span class="status-badge" style="background:${st.bg};color:${st.color}">${st.icon} ${st.label}</span>
+      </div>
+      <div style="font-size:11px;color:#a08060">${d}${datePerm}</div>
+      <div class="admin-req-justif">${r.justification}</div>
+      ${comment}${actions}
+    </div>`;
+  }).join("");
+}
+
+async function decide(id, status) {
+  const cmtEl = document.getElementById("cmt_" + id);
+  const comment = cmtEl ? cmtEl.value.trim() : "";
+  const { error } = await sb.from("requests").update({ status, comment }).eq("id", id);
+  if (error) { alert("Error: " + error.message); return; }
+  renderAdminRequests();
+  if (currentAdminTab === "historial" && selectedSeminarianId) renderHistorialDetail(selectedSeminarianId);
+}
+
+// ─── HISTORIAL ─────────────────────────────────────────────────────────────────
+async function renderSeminarianGrid() {
+  const q = (document.getElementById("histSearchInput").value || "").toLowerCase();
+  const { data: allReqs } = await sb.from("requests").select("student_id,status");
+  const reqMap = {};
+  (allReqs || []).forEach(r => {
+    if (!reqMap[r.student_id]) reqMap[r.student_id] = {total:0,pend:0,apro:0};
+    reqMap[r.student_id].total++;
+    if (r.status==="pendiente") reqMap[r.student_id].pend++;
+    if (r.status==="aprobado") reqMap[r.student_id].apro++;
+  });
+  const filtered = STUDENTS.filter(s => s.name.toLowerCase().includes(q));
+  const grid = document.getElementById("seminarianGrid");
+  grid.innerHTML = filtered.map(s => {
+    const stats = reqMap[s.id] || {total:0,pend:0,apro:0};
+    const isSelected = s.id === selectedSeminarianId;
+    return `<div class="seminarian-card${isSelected?" selected":""}" onclick="selectSeminarian('${s.id}')">
+      <div class="sem-avatar">${initials(s.name)}</div>
+      <div>
+        <div class="sem-name">${s.name}</div>
+        <div class="sem-stats">${stats.total} solicitudes · ${stats.pend} pend · ${stats.apro} apr</div>
+      </div>
+    </div>`;
+  }).join("") || `<div style="grid-column:1/-1;text-align:center;color:#a08060;padding:20px">No se encontraron seminaristas.</div>`;
+}
+
+function selectSeminarian(id) {
+  selectedSeminarianId = id;
+  renderSeminarianGrid();
+  renderHistorialDetail(id);
+}
+
+async function renderHistorialDetail(id) {
+  const s = STUDENTS.find(x => x.id === id);
+  if (!s) return;
+  const { data: reqs } = await sb.from("requests")
+    .select("*")
+    .eq("student_id", id)
+    .order("created_at", { ascending: false });
+
+  const all = reqs || [];
+  const pend = all.filter(r=>r.status==="pendiente").length;
+  const apro = all.filter(r=>r.status==="aprobado").length;
+  const rech = all.filter(r=>r.status==="rechazado").length;
+  const detail = document.getElementById("historialDetail");
+  detail.classList.remove("hidden");
+  const timeline = all.length ? all.map(r => {
+    const st = STATUS_CFG[r.status];
+    const tp = TYPE_CFG[r.type];
+    const d = new Date(r.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+    const datePerm = r.date ? ` · Fecha perm: ${new Date(r.date+"T12:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"long"})}` : "";
+    const comment = r.comment ? `<div style="font-size:11px;color:#5a4530;font-style:italic;margin-top:3px">💬 "${r.comment}"</div>` : "";
+    return `<div class="timeline-item">
+      <div class="timeline-dot" style="background:${st.color}"></div>
+      <div class="timeline-body">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span class="timeline-type" style="color:${tp.color}">${tp.icon} ${r.type}</span>
+          <span class="status-badge" style="background:${st.bg};color:${st.color};font-size:10px">${st.icon} ${st.label}</span>
+        </div>
+        <div class="timeline-text">${r.justification}</div>
+        <div class="timeline-meta">${d}${datePerm}</div>
+        ${comment}
+      </div>
+    </div>`;
+  }).join("") : `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Este seminarista aún no tiene solicitudes.</div></div>`;
+
+  detail.innerHTML = `<div class="history-panel">
+    <div class="history-header">
+      <div class="history-avatar">${initials(s.name)}</div>
+      <div>
+        <div class="history-name">${s.name}</div>
+        <div class="history-meta">Seminario Mayor Santo Tomás de Aquino</div>
+      </div>
+    </div>
+    <div class="history-summary">
+      <span class="hsummary-pill" style="background:#fef9e7;color:#d4a017">⏳ ${pend} Pendiente${pend!==1?"s":""}</span>
+      <span class="hsummary-pill" style="background:#e8f5e9;color:#2e7d32">✅ ${apro} Aprobada${apro!==1?"s":""}</span>
+      <span class="hsummary-pill" style="background:#ffebee;color:#c62828">❌ ${rech} Rechazada${rech!==1?"s":""}</span>
+      <span class="hsummary-pill" style="background:#ede5d8;color:#5a4530">📋 ${all.length} Total</span>
+    </div>
+    ${timeline}
+  </div>`;
+}
+</script>
+</body>
+</html>
