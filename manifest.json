@@ -1,0 +1,12 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Permisos SMASTA",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Permisos SMASTA",
+  "start_url": "/https://exquisite-mandazi-46a738.netlify.app/",
+  "theme_color": "#ffffff",
+  "id": "Permismats"
+}
