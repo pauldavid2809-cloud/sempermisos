@@ -818,6 +818,21 @@ function addNotification(r) {
   renderNotifList();
   showToast(notif);
   ringBell();
+
+  // Lanzar notificación nativa del sistema operativo si la pestaña está en segundo plano o abierta
+  if (window.Notification && Notification.permission === "granted") {
+    const title = r.status === 'aprobado' ? '✅ Solicitud Aprobada' : '❌ Solicitud Denegada';
+    const body = `Tu solicitud de ${r.type.toLowerCase()} fue resuelta por la Rectoría.${r.comment ? `\n"${r.comment}"` : ''}`;
+    try {
+      new Notification(title, {
+        body: body,
+        icon: 'Logo Seminario Borde (1).png',
+        badge: 'Logo Seminario Borde (1).png'
+      });
+    } catch (e) {
+      console.warn("No se pudo mostrar la notificación nativa:", e);
+    }
+  }
 }
 
 function updateNotifBadge() {
