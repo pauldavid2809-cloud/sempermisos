@@ -614,9 +614,29 @@ function showError(msg) {
     o.value = s.id; o.textContent = s.name; sel.appendChild(o);
   });
   document.getElementById("docCurrentDate").textContent = new Date().toLocaleDateString("es-ES", {day:'2-digit', month:'long', year:'numeric'});
+  
+  // Verificar si hay una sesión guardada en localStorage
+  const savedSession = localStorage.getItem('sempermisos_session');
+  
   setTimeout(() => {
     showLoading(false);
-    document.getElementById("loginScreen").classList.remove("hidden");
+    if (savedSession) {
+      try {
+        currentSession = JSON.parse(savedSession);
+        enterApp();
+        if (currentSession.role === 'student') {
+          showStudentView();
+        } else {
+          showAdminView();
+        }
+      } catch (e) {
+        console.error("Error al cargar la sesión guardada:", e);
+        localStorage.removeItem('sempermisos_session');
+        document.getElementById("loginScreen").classList.remove("hidden");
+      }
+    } else {
+      document.getElementById("loginScreen").classList.remove("hidden");
+    }
   }, 1200);
 })();
 
@@ -662,6 +682,10 @@ async function doLogin() {
 
       const student = STUDENTS.find(s => s.id === id);
       currentSession = { role: "student", student };
+      
+      // Guardar sesión en localStorage
+      localStorage.setItem('sempermisos_session', JSON.stringify(currentSession));
+      
       enterApp();
       showStudentView();
 
@@ -674,6 +698,10 @@ async function doLogin() {
       if (error || !data) { showError("Clave de administrador incorrecta."); return; }
 
       currentSession = { role: "admin" };
+      
+      // Guardar sesión en localStorage
+      localStorage.setItem('sempermisos_session', JSON.stringify(currentSession));
+      
       enterApp();
       showAdminView();
     }
@@ -700,6 +728,9 @@ function enterApp() {
 function doLogout() {
   if (realtimeChannel) { sb.removeChannel(realtimeChannel); realtimeChannel = null; }
   currentSession = null;
+  // Borrar sesión de localStorage
+  localStorage.removeItem('sempermisos_session');
+  
   document.getElementById("appScreen").classList.add("hidden");
   document.getElementById("studentView").classList.add("hidden");
   document.getElementById("adminView").classList.add("hidden");
