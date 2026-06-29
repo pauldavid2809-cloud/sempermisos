@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { sendNotification } from "https://deno.land/x/webpush@v1.1.1/mod.ts"
+import { sendNotification } from "https://esm.sh/pushforge@0.1.6"
 
 serve(async (req) => {
   // Configurar cabeceras CORS
@@ -52,16 +52,17 @@ serve(async (req) => {
     // Enviar a todos los dispositivos suscritos del seminarista
     for (const s of subs) {
       try {
-        // En Deno webpush.sendNotification usa Web APIs nativas
+        // En Deno con pushforge.sendNotification
         await sendNotification({
           subscription: s.subscription,
-          payload: new TextEncoder().encode(message),
-          vapidDetails: vapidDetails
+          payload: message,
+          vapid: vapidDetails
         })
+        console.log("Notificación push enviada con éxito.");
       } catch (err) {
         console.error("Error enviando push individual:", err)
         // Si el servidor de notificaciones retorna error de suscripción expirada (410 o 404), la limpiamos de la BD
-        if (err.status === 410 || err.status === 404) {
+        if (err.status === 410 || err.status === 404 || err.message?.includes('410') || err.message?.includes('404')) {
           await supabase
             .from('push_subscriptions')
             .delete()
