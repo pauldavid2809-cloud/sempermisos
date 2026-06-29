@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import webpush from "npm:web-push@3.6.0"
+import { sendNotification } from "https://deno.land/x/webpush@v1.1.1/mod.ts"
 
 serve(async (req) => {
   // Configurar cabeceras CORS
@@ -38,27 +38,30 @@ serve(async (req) => {
       return new Response("El usuario no tiene dispositivos suscritos.")
     }
 
-    // Configurar detalles VAPID
-    webpush.setVapidDetails(
-      'mailto:rectoria@seminariomayor.org',
-      'BF6588iC-gXhD5J1xZ4Z3gI8-W7zH1oY2vT3uN-lP7cK6eJ5iM-q4t6vR8sY1', // Llave Pública Frontend
-      'N3d8o_zX8yP6m5n9L4J3K2j1h0g9f8e7d6c5b4a3_2I'                    // Llave Privada
-    )
-
     const message = JSON.stringify({
       title: record.status === 'aprobado' ? '✅ Solicitud Aprobada' : '❌ Solicitud Denegada',
       body: `Tu solicitud de ${record.type} ha sido resuelta por la Rectoría.`
     })
 
+    const vapidDetails = {
+      subject: 'mailto:rectoria@seminariomayor.org',
+      publicKey: 'BF6588iC-gXhD5J1xZ4Z3gI8-W7zH1oY2vT3uN-lP7cK6eJ5iM-q4t6vR8sY1', // Llave Pública Frontend
+      privateKey: 'N3d8o_zX8yP6m5n9L4J3K2j1h0g9f8e7d6c5b4a3_2I'                    // Llave Privada
+    }
+
     // Enviar a todos los dispositivos suscritos del seminarista
     for (const s of subs) {
       try {
-        // En Deno web-push espera la firma del formato de la suscripción
-        await webpush.sendNotification(s.subscription, message)
+        // En Deno webpush.sendNotification usa Web APIs nativas
+        await sendNotification({
+          subscription: s.subscription,
+          payload: new TextEncoder().encode(message),
+          vapidDetails: vapidDetails
+        })
       } catch (err) {
         console.error("Error enviando push individual:", err)
-        // Si el navegador reporta que la suscripción expiró o es inválida, la limpiamos de la BD
-        if (err.statusCode === 410 || err.statusCode === 404) {
+        // Si el servidor de notificaciones retorna error de suscripción expirada (410 o 404), la limpiamos de la BD
+        if (err.status === 410 || err.status === 404) {
           await supabase
             .from('push_subscriptions')
             .delete()
