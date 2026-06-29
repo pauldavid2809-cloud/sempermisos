@@ -49,20 +49,33 @@ serve(async (req) => {
       privateKey: 'AVYxydgsrAS8o5eQVG6V3hDqSKMo5NOEzIiKEe0ArO2laI84KTTZL2may9gRTFvrqIBwZyUR_57Y9gjr2G44Amgq'                    // Llave Privada
     }
 
+    const results = []
     // Enviar a todos los dispositivos suscritos del seminarista
     for (const s of subs) {
       try {
         // web-push-neo utiliza Web Crypto API nativo y se ejecuta sin dependencias de Node
-        await sendNotification(
+        const res = await sendNotification(
           s.subscription,
           message,
           {
             vapidDetails: vapidDetails
           }
         )
-        console.log("Notificación push enviada con éxito.");
+        results.push({
+          endpoint: s.subscription.endpoint,
+          success: true,
+          status: res.status
+        })
       } catch (err) {
         console.error("Error enviando push individual:", err)
+        
+        results.push({
+          endpoint: s.subscription.endpoint,
+          success: false,
+          error: err.message || String(err),
+          status: err.status || null
+        })
+
         // Si el servidor de notificaciones retorna error de suscripción expirada (410 o 404), la limpiamos de la BD
         if (err.status === 410 || err.status === 404 || err.message?.includes('410') || err.message?.includes('404')) {
           await supabase
@@ -73,7 +86,7 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, results: results }), {
       headers: { "Content-Type": "application/json" }
     })
   } catch (globalError) {
