@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { sendNotification } from "https://esm.sh/@pushforge/builder@1.0.0"
+import { sendNotification } from "npm:web-push-neo@0.1.1"
 
 serve(async (req) => {
   // Configurar cabeceras CORS
@@ -52,12 +52,14 @@ serve(async (req) => {
     // Enviar a todos los dispositivos suscritos del seminarista
     for (const s of subs) {
       try {
-        // En Deno con pushforge.sendNotification
-        await sendNotification({
-          subscription: s.subscription,
-          payload: message,
-          vapid: vapidDetails
-        })
+        // web-push-neo utiliza Web Crypto API nativo y se ejecuta sin dependencias de Node
+        await sendNotification(
+          s.subscription,
+          message,
+          {
+            vapid: vapidDetails
+          }
+        )
         console.log("Notificación push enviada con éxito.");
       } catch (err) {
         console.error("Error enviando push individual:", err)
