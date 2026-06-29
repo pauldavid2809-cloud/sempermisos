@@ -45,8 +45,8 @@ serve(async (req) => {
 
     const vapidDetails = {
       subject: 'mailto:rectoria@seminariomayor.org',
-      publicKey: 'BF6588iC-gXhD5J1xZ4Z3gI8-W7zH1oY2vT3uN-lP7cK6eJ5iM-q4t6vR8sY1', // Llave Pública Frontend
-      privateKey: 'N3d8o_zX8yP6m5n9L4J3K2j1h0g9f8e7d6c5b4a3_2I'                    // Llave Privada
+      publicKey: 'BAC4uNWqbDqkn7Q3VJrWoWGyPSCvMkjJftlHlLy4Q1rZAeqj5z5On0Cm8puoC9nmfpGT_TgNp6HB_yHy4K2O7_Q', // Llave Pública Frontend
+      privateKey: 'AVYxydgsrAS8o5eQVG6V3hDqSKMo5NOEzIiKEe0ArO2laI84KTTZL2may9gRTFvrqIBwZyUR_57Y9gjr2G44Amgq'                    // Llave Privada
     }
 
     // Enviar a todos los dispositivos suscritos del seminarista
