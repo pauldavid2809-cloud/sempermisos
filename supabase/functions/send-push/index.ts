@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import webpush from "https://esm.sh/web-push@3.6.0"
+import webpush from "npm:web-push@3.6.0"
 
 serve(async (req) => {
   // Configurar cabeceras CORS
