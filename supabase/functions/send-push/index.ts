@@ -57,7 +57,7 @@ serve(async (req) => {
           s.subscription,
           message,
           {
-            vapid: vapidDetails
+            vapidDetails: vapidDetails
           }
         )
         console.log("Notificación push enviada con éxito.");
