@@ -1000,10 +1000,34 @@ function cardGuardia(g, counts) {
 }
 
 function pedirAsignar(gid) {
-  if (rolling) return;
-  if (!current) { toast("No hay seminarista sorteado.", true); return; }
+  // Si el sorteo está girando, lo detenemos y procedemos igual
+  if (rolling || rollTimer) {
+    if (rollTimer) { clearInterval(rollTimer); rollTimer = null; }
+    rolling = false;
+    // Aseguramos que el nombre final quede visible en el reel
+    if (current && byId[current]) {
+      const reel = $("slotReel");
+      reel.innerHTML = `<div class="slot-item active">${byId[current].name}</div>`;
+      $("drawAvatar").textContent = initials(byId[current].name);
+      $("drawAvatar").style.background = avatarColor(current);
+    }
+  }
+  if (navLock) { toast("Espere un momento…", false); return; }
+  if (!current) { toast("No hay seminarista sorteado. Presione 'Comenzar el sorteo'.", true); return; }
+  if (!byId[current]) { toast("Error interno: seminarista no encontrado.", true); return; }
+
   const g = GUARDIAS.find(x => x.id === gid);
   const s = byId[current];
+  if (!g) { toast("Guardia no encontrada.", true); return; }
+
+  // Verificación rápida local antes de abrir el modal
+  const counts = countsPorGuardia();
+  if (estadoGuardia(gid, counts) !== "libre") {
+    toast("Esa guardia ya está completa.", true);
+    renderDraw();
+    return;
+  }
+
   abrirModal("Confirmar asignación",
     `<b>${s.name}</b> hará la guardia del <b>${g.titulo}</b><br>(entrada ${g.entradaDia} 3:00 PM · salida ${g.salidaDia} 9:00 AM). ¿Confirma, Padre?`,
     "Sí, asignar", () => asignar(gid));
@@ -1016,13 +1040,15 @@ async function asignar(gid) {
   rolling = false;
 
   const quien = current;
+  if (!quien) { toast("No hay seminarista seleccionado.", true); return; }
+
   navLock = true;
   try {
     await refetch(true);
 
     // Verificar que este seminarista no tenga ya guardia
     if (selections.some(s => s.seminarista_id === quien)) {
-      toast("Este seminarista ya tiene guardia.", true);
+      toast("Este seminarista ya tiene guardia asignada.", true);
       navLock = false;
       irADondeToque();
       return;
@@ -1030,7 +1056,7 @@ async function asignar(gid) {
 
     // Verificar que la guardia aún tenga cupo
     if (estadoGuardia(gid, countsPorGuardia()) !== "libre") {
-      toast("Esa guardia ya no está disponible.", true);
+      toast("Esa guardia ya no tiene cupo disponible.", true);
       navLock = false;
       renderDraw();
       return;
@@ -1040,26 +1066,33 @@ async function asignar(gid) {
       { seminarista_id: quien, seminarista_nombre: byId[quien].name, guardia_id: gid },
       { onConflict: "seminarista_id" }
     );
-    if (error) { console.error(error); toast("No se pudo guardar. Intente de nuevo.", true); return; }
+    if (error) {
+      console.error(error);
+      toast("No se pudo guardar. Intente de nuevo.", true);
+      navLock = false;
+      return;
+    }
 
     undoStack.push(quien);
     await refetch(true);
     const g = GUARDIAS.find(x => x.id === gid);
-    toast(`${shortName(byId[quien].name)} → ${g.titulo}`);
+    toast(`✓ ${shortName(byId[quien].name)} → ${g ? g.titulo : gid}`);
 
     const pend = pendientes();
     if (pend.length) {
-      sortear();                          // elige nuevo current
-      if (!current) {                     // sanity check
-        current = pend[0];
-      }
-      renderDraw();                       // reconstruye el DOM del reel
-      animarNombre();                     // lanza animación con el DOM fresco
+      sortear();
+      if (!current) { current = pend[0]; }  // sanity check
+      renderDraw();
+      animarNombre();
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       current = null;
       mostrarFinal();
     }
+  } catch(e) {
+    console.error(e);
+    toast("Error inesperado. Recargue la página.", true);
+    navLock = false;
   } finally {
     navLock = false;
   }
