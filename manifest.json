@@ -4,9 +4,9 @@
   "display": "standalone",
   "name": "Guardias SMASTA",
   "orientation": "any",
-  "scope": "/",
+  "scope": "./",
   "short_name": "Guardias",
-  "start_url": "/",
+  "start_url": "./",
   "theme_color": "#fbf9f5",
   "id": "guardias-smasta",
   "icons": [
