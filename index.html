@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sorteo de Guardias — Agosto · Seminario Mayor Santo Tomás de Aquino</title>
+<link rel="icon" href="Logo Seminario Borde (1).png" type="image/png"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&amp;family=Source+Sans+3:wght@300;400;500;600;700&amp;family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --surface: #fbf9f5;
+    --surface-low: #f5f3ef;
+    --surface-container: #efeeea;
+    --surface-high: #eae8e4;
+    --on-surface: #1b1c1a;
+    --on-surface-variant: #4b463c;
+    --outline: #7d766b;
+    --outline-variant: #cec5b8;
+    --altar-gold: #8b6a3e;
+    --wood-noble: #5a4530;
+    --ink-deep: #2c1f0e;
+    --liturgical-green: #2e7d32;
+    --green-bg: #e8f5e9;
+    --gold-bg: #f3e1b9;
+    --error: #ba1a1a;
+    --error-bg: #ffdad6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background-color: var(--surface);
+    color: var(--on-surface);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  .serif { font-family: 'Libre Caslon Text', serif; }
+  .msym {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal; font-style: normal;
+    display: inline-block; line-height: 1;
+    letter-spacing: normal; text-transform: none;
+    white-space: nowrap; word-wrap: normal; direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    user-select: none;
+  }
+  button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  input { font: inherit; }
+
+  .paper-texture { background-image: radial-gradient(circle at 50% 0%, rgba(139,106,62,0.06), transparent 60%); }
+
+  /* ── Header ── */
+  header.app {
+    background: var(--surface);
+    border-bottom: 1px solid var(--outline-variant);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .header-inner {
+    max-width: 1060px; margin: 0 auto;
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+  }
+  .header-inner img { width: 44px; height: 44px; object-fit: contain; }
+  .header-title { font-size: 17px; font-weight: 700; letter-spacing: .2px; }
+  .header-sub { font-size: 11.5px; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 1.2px; }
+  .header-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .hbtn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 600; color: var(--wood-noble);
+    background: var(--surface-low); border: 1px solid var(--outline-variant);
+    border-radius: 999px; padding: 6px 12px;
+  }
+  .hbtn:hover { background: var(--surface-high); }
+  .hbtn .msym { font-size: 16px; }
+
+  main { max-width: 1060px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #fff;
+    background: var(--altar-gold); flex: none;
+  }
+
+  /* ── Setup (participantes) ── */
+  .setup-wrap { max-width: 560px; margin: 0 auto; padding: 30px 16px 40px; }
+  .setup-logo { display: block; width: 92px; height: 92px; object-fit: contain; margin: 0 auto 14px; }
+  .setup-wrap h1 { font-family: 'Libre Caslon Text', serif; text-align: center; font-size: clamp(24px, 6vw, 32px); color: var(--ink-deep); }
+  .setup-wrap .sub { text-align: center; color: var(--on-surface-variant); margin: 8px 0 4px; font-size: 14.5px; }
+  .setup-wrap .sub2 {
+    text-align: center; font-size: 11.5px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--altar-gold); font-weight: 700; margin-bottom: 22px;
+  }
+  .list-tools { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; }
+  .list-tools b { color: var(--wood-noble); }
+  .list-tools button { color: var(--altar-gold); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; font-size: 13px; }
+  .names-list {
+    background: #fff; border: 1px solid var(--outline-variant); border-radius: 14px;
+    overflow: hidden; max-height: 48vh; overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(26,18,0,0.06);
+  }
+  .name-item {
+    width: 100%; display: flex; align-items: center; gap: 12px; text-align: left;
+    padding: 11px 16px; border-bottom: 1px solid var(--surface-container);
+    font-size: 15px; transition: background .12s ease;
+  }
+  .name-item:last-child { border-bottom: none; }
+  .name-item:hover { background: var(--surface-low); }
+  .name-item .check {
+    margin-left: auto; width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid var(--outline-variant);
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+    color: transparent; transition: all .12s ease;
+  }
+  .name-item.on .check { background: var(--liturgical-green); border-color: var(--liturgical-green); color: #fff; }
+  .name-item.on .check .msym { font-size: 16px; }
+  .name-item:not(.on) { opacity: .55; }
+  .setup-foot { margin-top: 18px; text-align: center; }
+  .setup-foot .hint { font-size: 13px; color: var(--on-surface-variant); margin-bottom: 12px; }
+  .btn-big {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--ink-deep); color: #fff;
+    font-size: 16px; font-weight: 600;
+    padding: 13px 28px; border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(44,31,14,0.25);
+    transition: background .15s ease, opacity .15s ease;
+  }
+  .btn-big:hover { background: var(--wood-noble); }
+  .btn-big:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-big .msym { font-size: 20px; }
+
+  /* ── Sorteo ── */
+  .draw-progress { max-width: 620px; margin: 4px auto 18px; }
+  .draw-progress .row { display: flex; justify-content: space-between; font-size: 13.5px; align-items: baseline; }
+  .draw-progress .row b { font-size: 15px; color: var(--ink-deep); }
+  .progress-bar { height: 6px; border-radius: 999px; background: var(--surface-high); margin-top: 6px; overflow: hidden; }
+  .progress-bar > div { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--altar-gold), var(--wood-noble)); transition: width .5s ease; width: 0%; }
+
+  .draw-card {
+    max-width: 620px; margin: 0 auto 8px; text-align: center;
+    background: #fff; border: 1px solid var(--outline-variant);
+    border-top: 4px solid var(--altar-gold);
+    border-radius: 16px; padding: 26px 20px 22px;
+    box-shadow: 0 6px 24px rgba(26,18,0,0.09);
+  }
+  .draw-card .lbl {
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--altar-gold); font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .draw-card .lbl::before, .draw-card .lbl::after { content: ""; height: 1px; width: 46px; background: var(--outline-variant); }
+  .draw-avatar {
+    width: 64px; height: 64px; font-size: 22px; margin: 14px auto 10px;
+    display: flex;
+    box-shadow: 0 4px 12px rgba(44,31,14,0.25);
+  }
+  .draw-name {
+    font-family: 'Libre Caslon Text', serif; font-size: clamp(21px, 5.4vw, 30px);
+    color: var(--ink-deep); min-height: 1.3em; font-weight: 700;
+  }
+  .draw-name.rolling { color: var(--outline); }
+  .draw-name.settled { animation: settle .45s ease; }
+  @keyframes settle {
+    0% { transform: scale(.92); opacity: .4; }
+    60% { transform: scale(1.04); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .draw-card .instr { font-size: 13.5px; color: var(--on-surface-variant); margin-top: 8px; }
+  .draw-card .instr .msym { font-size: 15px; vertical-align: -2px; color: var(--altar-gold); }
+  .draw-acts { display: flex; justify-content: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+  .btn-mini {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12.5px; font-weight: 600; color: var(--wood-noble);
+    border: 1px solid var(--outline-variant); border-radius: 999px; padding: 6px 14px;
+    background: var(--surface-low);
+  }
+  .btn-mini:hover { background: var(--surface-high); }
+  .btn-mini .msym { font-size: 15px; }
+  .btn-mini.danger { color: var(--error); }
+
+  /* ── Semanas y tarjetas ── */
+  .week-title {
+    display: flex; align-items: center; gap: 10px;
+    margin: 28px 0 12px;
+    font-family: 'Libre Caslon Text', serif; font-size: 18px; color: var(--wood-noble);
+  }
+  .week-title::after { content: ""; flex: 1; height: 1px; background: var(--outline-variant); }
+  .week-title .num {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 11px; letter-spacing: 1.5px; font-weight: 700; text-transform: uppercase;
+    color: var(--altar-gold); border: 1px solid var(--altar-gold);
+    border-radius: 999px; padding: 2px 10px;
+  }
+  .cards-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 720px) { .cards-grid { grid-template-columns: 1fr 1fr; } }
+
+  .gcard {
+    background: #fff; border: 1px solid var(--outline-variant);
+    border-radius: 14px; padding: 16px 16px 14px;
+    box-shadow: 0 3px 14px rgba(26,18,0,0.05);
+    display: flex; flex-direction: column; gap: 11px;
+    position: relative; overflow: hidden;
+  }
+  .gcard::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: var(--altar-gold);
+  }
+  .gcard.finde::before { background: var(--wood-noble); }
+
+  .gcard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .type-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--altar-gold); background: var(--gold-bg);
+    padding: 4px 10px; border-radius: 999px;
+  }
+  .gcard.finde .type-chip { color: #fff; background: var(--wood-noble); }
+  .type-chip .msym { font-size: 15px; }
+
+  .gcard h3 { font-family: 'Libre Caslon Text', serif; font-size: 20px; color: var(--ink-deep); font-weight: 700; }
+
+  .times { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .time-box { background: var(--surface-low); border-radius: 10px; padding: 7px 12px; font-size: 13px; }
+  .time-box .lbl {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--on-surface-variant); margin-bottom: 1px;
+  }
+  .time-box .lbl .msym { font-size: 14px; color: var(--altar-gold); }
+  .time-box b { font-size: 13.5px; color: var(--on-surface); display: block; }
+  .time-box span { color: var(--on-surface-variant); font-size: 12.5px; }
+
+  .members { min-height: 30px; display: flex; flex-direction: column; gap: 6px; }
+  .member-row { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+  .member-row .avatar { width: 26px; height: 26px; font-size: 10.5px; }
+  .members .empty { color: var(--outline); font-size: 13px; font-style: italic; display: flex; align-items: center; gap: 6px; }
+  .members .empty .msym { font-size: 16px; }
+
+  .gcard-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 1px; }
+  .slots { display: flex; gap: 5px; align-items: center; }
+  .slot-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--outline-variant); background: transparent; }
+  .slot-dot.full { background: var(--altar-gold); border-color: var(--altar-gold); }
+  .slot-dot.bonus { border-style: dashed; }
+  .slot-dot.bonus.full { background: var(--wood-noble); border-color: var(--wood-noble); border-style: solid; }
+  .slots small { font-size: 11px; color: var(--on-surface-variant); margin-left: 4px; }
+
+  .btn-take {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--ink-deep); color: #fff;
+    font-size: 13.5px; font-weight: 600;
+    padding: 9px 16px; border-radius: 999px;
+    transition: background .15s ease, opacity .15s ease;
+  }
+  .btn-take .msym { font-size: 17px; }
+  .btn-take:hover { background: var(--wood-noble); }
+  .btn-take.is-full { background: var(--surface-high); color: var(--on-surface-variant); cursor: not-allowed; }
+  .locked-hint { font-size: 11.5px; color: var(--on-surface-variant); display: flex; gap: 5px; align-items: center; }
+  .locked-hint .msym { font-size: 14px; }
+
+  /* ── Esquema final ── */
+  .final-hero { text-align: center; padding: 20px 8px 4px; }
+  .final-hero .msym.big { font-size: 44px; color: var(--liturgical-green); font-variation-settings: 'FILL' 1; }
+  .final-hero h1 { font-family: 'Libre Caslon Text', serif; font-size: clamp(24px, 5vw, 34px); color: var(--ink-deep); margin-top: 6px; }
+  .final-hero p { color: var(--on-surface-variant); font-size: 14.5px; max-width: 540px; margin: 8px auto 0; }
+  .final-hero .warn { color: var(--altar-gold); font-weight: 600; }
+  .final-acts { display: flex; justify-content: center; gap: 12px; margin: 20px 0 6px; flex-wrap: wrap; }
+
+  .sched-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 20px; }
+  @media (min-width: 720px) { .sched-grid { grid-template-columns: 1fr 1fr; } }
+  .sched-card {
+    background: #fff; border: 1px solid var(--outline-variant); border-radius: 14px;
+    padding: 16px 18px; position: relative; overflow: hidden;
+    box-shadow: 0 3px 14px rgba(26,18,0,0.05);
+  }
+  .sched-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--altar-gold); }
+  .sched-card.finde::before { background: var(--wood-noble); }
+  .sched-card .schips { display: flex; gap: 6px; margin-bottom: 6px; }
+  .sched-card h3 { font-family: 'Libre Caslon Text', serif; font-size: 19px; color: var(--ink-deep); }
+  .sched-card .hours { font-size: 12.5px; color: var(--on-surface-variant); margin: 2px 0 10px; }
+  .sched-member {
+    display: flex; align-items: center; gap: 9px; font-size: 14px;
+    padding: 5px 0; border-top: 1px dashed var(--surface-high);
+  }
+  .sched-member .avatar { width: 26px; height: 26px; font-size: 10.5px; }
+  .sched-member .rm { margin-left: auto; color: var(--outline-variant); display: inline-flex; }
+  .sched-member .rm:hover { color: var(--error); }
+  .sched-member .rm .msym { font-size: 18px; }
+  .sched-card .none { font-size: 13px; font-style: italic; color: var(--outline); padding-top: 4px; }
+
+  /* ── Modal ── */
+  .modal-back {
+    position: fixed; inset: 0; background: rgba(28,20,5,0.45); z-index: 50;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal {
+    background: var(--surface); border-radius: 16px; max-width: 420px; width: 100%;
+    padding: 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    border-top: 4px solid var(--altar-gold);
+  }
+  .modal h3 { font-family: 'Libre Caslon Text', serif; font-size: 19px; color: var(--ink-deep); margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: var(--on-surface-variant); margin-bottom: 20px; }
+  .modal p b { color: var(--on-surface); }
+  .modal .acts { display: flex; gap: 10px; justify-content: flex-end; }
+  .btn-ghost { padding: 9px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--on-surface-variant); }
+  .btn-ghost:hover { background: var(--surface-high); }
+  .btn-solid { padding: 9px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; background: var(--ink-deep); color: #fff; }
+  .btn-solid:hover { background: var(--wood-noble); }
+  .btn-solid.danger { background: var(--error); }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink-deep); color: #fff; font-size: 14px;
+    padding: 11px 20px; border-radius: 999px; z-index: 60;
+    display: flex; align-items: center; gap: 8px;
+    opacity: 0; pointer-events: none; transition: opacity .25s ease, transform .25s ease;
+    max-width: 92vw; text-align: center;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.err { background: var(--error); }
+  #toast .msym { font-size: 18px; flex: none; }
+
+  /* ── Setup Supabase ── */
+  .setup-card {
+    max-width: 720px; margin: 30px auto; background: #fff;
+    border: 1px solid var(--outline-variant); border-left: 4px solid var(--error);
+    border-radius: 12px; padding: 22px;
+  }
+  .setup-card h3 { font-family: 'Libre Caslon Text', serif; margin-bottom: 8px; color: var(--ink-deep); }
+  .setup-card p { font-size: 14px; color: var(--on-surface-variant); margin-bottom: 12px; }
+  .setup-card pre {
+    background: var(--surface-low); border: 1px solid var(--outline-variant);
+    border-radius: 8px; padding: 14px; font-size: 12px; overflow-x: auto;
+    line-height: 1.6; margin-bottom: 12px;
+  }
+
+  .loading-veil {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    padding: 70px 0; color: var(--on-surface-variant); font-size: 14px;
+  }
+  .spinner {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 3px solid var(--outline-variant); border-top-color: var(--altar-gold);
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  footer.app {
+    text-align: center; padding: 26px 16px 40px;
+    color: var(--outline); font-size: 12px; letter-spacing: .4px;
+  }
+  .hidden { display: none !important; }
+
+  /* ═══ HOJA DE IMPRESIÓN (PDF) ═══ */
+  #printSheet { display: none; }
+  @media print {
+    @page { size: letter portrait; margin: 14mm 12mm; }
+    body > *:not(#printSheet) { display: none !important; }
+    body { background: #fff; }
+    #printSheet { display: block; color: #1b1c1a; }
+    .ps-head { display: flex; align-items: center; gap: 14px; border-bottom: 2px solid #8b6a3e; padding-bottom: 10px; }
+    .ps-head img { width: 58px; height: 58px; object-fit: contain; }
+    .ps-head h1 { font-family: 'Libre Caslon Text', serif; font-size: 20px; }
+    .ps-head .sem { font-size: 10.5px; letter-spacing: 1.6px; text-transform: uppercase; color: #5a4530; font-weight: 700; }
+    .ps-meta { font-size: 11px; color: #4b463c; margin: 8px 0 14px; }
+    .ps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .ps-card { border: 1px solid #b9ad9a; border-radius: 8px; padding: 10px 12px; break-inside: avoid; }
+    .ps-card .tag { font-size: 8.5px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: #8b6a3e; }
+    .ps-card.finde .tag { color: #5a4530; }
+    .ps-card h3 { font-family: 'Libre Caslon Text', serif; font-size: 14px; margin: 1px 0 2px; }
+    .ps-card .hrs { font-size: 9.5px; color: #4b463c; margin-bottom: 6px; }
+    .ps-card ol { margin-left: 16px; font-size: 11.5px; }
+    .ps-card ol li { padding: 1.5px 0; }
+    .ps-foot { margin-top: 22px; display: flex; justify-content: space-between; align-items: flex-end; font-size: 10.5px; color: #4b463c; }
+    .ps-sign { text-align: center; }
+    .ps-sign .line { width: 200px; border-top: 1px solid #1b1c1a; margin-bottom: 4px; }
+  }
+</style>
+</head>
+<body class="paper-texture">
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header class="app" id="mainHeader">
+  <div class="header-inner">
+    <img src="Logo Seminario Borde (1).png" alt="Escudo"/>
+    <div>
+      <div class="header-title serif">Guardias de Agosto</div>
+      <div class="header-sub">Seminario Sto. Tomás de Aquino</div>
+    </div>
+    <div class="header-right" id="headerActions"></div>
+  </div>
+</header>
+
+<main>
+  <div id="loadingVeil" class="loading-veil">
+    <div class="spinner"></div>
+    Consultando las guardias…
+  </div>
+
+  <div id="setupNotice" class="hidden"></div>
+
+  <!-- ═══════════ 1. SELECCIÓN DE PARTICIPANTES ═══════════ -->
+  <div id="setupScreen" class="setup-wrap hidden">
+    <img class="setup-logo" src="Logo Seminario Borde (1).png" alt="Escudo del Seminario"/>
+    <h1>Sorteo de Guardias</h1>
+    <p class="sub">Padre Rector: marque los seminaristas que harán guardia en agosto y comience el sorteo.</p>
+    <p class="sub2">Agosto 2026 · Lunes libres</p>
+    <div class="list-tools">
+      <span><b id="selCount">0</b> seleccionados</span>
+      <button id="toggleAllBtn" onclick="toggleTodos()">Desmarcar todos</button>
+    </div>
+    <div class="names-list" id="namesList"></div>
+    <div class="setup-foot">
+      <p class="hint" id="setupHint"></p>
+      <button class="btn-big" id="startBtn" onclick="comenzarSorteo()">
+        <span class="msym">casino</span>Comenzar el sorteo
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════ 2. SORTEO ═══════════ -->
+  <div id="drawScreen" class="hidden">
+    <div class="draw-progress">
+      <div class="row">
+        <span>Seminaristas con guardia asignada</span>
+        <b><span id="countChosen">0</span> / <span id="countTotal">0</span></b>
+      </div>
+      <div class="progress-bar"><div id="progressFill"></div></div>
+    </div>
+
+    <div class="draw-card">
+      <div class="lbl">Le toca elegir a</div>
+      <span class="avatar draw-avatar" id="drawAvatar">?</span>
+      <div class="draw-name" id="drawName">—</div>
+      <p class="instr"><span class="msym">arrow_downward</span> Asígnele una de las guardias disponibles</p>
+      <div class="draw-acts">
+        <button class="btn-mini" onclick="sortearOtro()"><span class="msym">shuffle</span>Sortear otro nombre</button>
+        <button class="btn-mini hidden" id="undoBtn" onclick="deshacerUltimo()"><span class="msym">undo</span>Deshacer la última</button>
+      </div>
+    </div>
+
+    <div id="guardias"></div>
+  </div>
+
+  <!-- ═══════════ 3. ESQUEMA FINAL ═══════════ -->
+  <div id="finalScreen" class="hidden">
+    <div class="final-hero">
+      <span class="msym big" id="finalIcon">verified</span>
+      <h1>Esquema de Guardias — Agosto 2026</h1>
+      <p id="finalSub"></p>
+    </div>
+    <div class="final-acts">
+      <button class="btn-big" onclick="descargarPDF()"><span class="msym">picture_as_pdf</span>Descargar en PDF</button>
+      <button class="btn-mini hidden" id="continueBtn" onclick="volverAlSorteo()"><span class="msym">casino</span>Continuar el sorteo</button>
+    </div>
+    <div class="sched-grid" id="schedGrid"></div>
+    <div style="text-align:center;margin-top:26px">
+      <button class="btn-mini danger" onclick="pedirReinicio()"><span class="msym">restart_alt</span>Reiniciar todo el sorteo</button>
+    </div>
+  </div>
+</main>
+
+<footer class="app">Ad Maiorem Dei Gloriam · Guardias de Agosto 2026</footer>
+
+<!-- ═══════════ MODAL ═══════════ -->
+<div id="modalBack" class="modal-back hidden">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <p id="modalText"></p>
+    <div class="acts">
+      <button class="btn-ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-solid" id="modalOk"></button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"><span class="msym" id="toastIcon">check_circle</span><span id="toastText"></span></div>
+
+<!-- ═══════════ HOJA PARA PDF ═══════════ -->
+<div id="printSheet"></div>
+
+<script>
+// ─── SUPABASE ────────────────────────────────────────────────────────────────
+const SUPABASE_URL = "https://yisjmtejpokkvupohkhd.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlpc2ptdGVqcG9ra3Z1cG9oa2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzg3MDEsImV4cCI6MjA5NDcxNDcwMX0.lBvH612ohhQVZdYnlcl6CKwVGJinZ6_Lnk6w8M495ns";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const TABLE = "guardias_agosto";
+
+// ─── SEMINARISTAS ────────────────────────────────────────────────────────────
+const STUDENTS = [
+  {id:"s01", name:"Alfenyer Alfonso Fernández Luzardo"},
+  {id:"s02", name:"Cesar David Petit Hansen"},
+  {id:"s03", name:"Mario José Soto Villasmil"},
+  {id:"s04", name:"Yorby Javier Suárez Suárez"},
+  {id:"s05", name:"Jorge Reyes"},
+  {id:"s06", name:"Osmán José Vargas Quintero"},
+  {id:"s07", name:"Luis Andrés Olivares Portillo"},
+  {id:"s08", name:"Rances Isaac Mercado Osorio"},
+  {id:"s09", name:"Luis Ángel Benítez Moran"},
+  {id:"s10", name:"Elio Barboza"},
+  {id:"s11", name:"Víctor Julio Suárez"},
+  {id:"s12", name:"Yorvi Jose Sierra Lopez"},
+  {id:"s13", name:"Luis Carlos Polanco Fernández"},
+  {id:"s14", name:"José Acosta"},
+  {id:"s15", name:"Rixio García"},
+  {id:"s16", name:"Jesús Tudares"},
+  {id:"s17", name:"Jorge Luis Villalobos González"},
+  {id:"s18", name:"Nixon Torrealba"},
+  {id:"s19", name:"Jossué Alejandro Hernández Miquilena"},
+  {id:"s20", name:"Paul David Urdaneta Berrueta"},
+  {id:"s21", name:"Ángel de Jesús Machado Villalobos"},
+  {id:"s22", name:"Gregori José García Hernández"},
+  {id:"s23", name:"Israel Junior Barboza Pérez"},
+  {id:"s24", name:"Armando de Jesús Celis Prieto"},
+  {id:"s25", name:"Ricardo Andrés Márquez Colina"},
+  {id:"s26", name:"Andrés Alfonso Araviche Chiquito"},
+  {id:"s27", name:"Dany Rafael Araujo Guedez"},
+  {id:"s28", name:"Ricardo José Morillo Medina"},
+  {id:"s29", name:"Alejandro Rubio"},
+  {id:"s30", name:"Jose Eloy Castillo Pirela"},
+  {id:"s31", name:"José Miguel Sierra Nava"},
+];
+const byId = Object.fromEntries(STUDENTS.map(s => [s.id, s]));
+
+// ─── GUARDIAS DE AGOSTO 2026 ─────────────────────────────────────────────────
+// Lunes libres. Semana: martes 3PM → viernes 9AM. Fin de semana: viernes 3PM → lunes 9AM.
+const GUARDIAS = [
+  {id:"g1", semana:1, tipo:"semana", titulo:"Martes 4 — Viernes 7",   entradaDia:"Martes 4",   salidaDia:"Viernes 7"},
+  {id:"g2", semana:1, tipo:"finde",  titulo:"Viernes 7 — Lunes 10",   entradaDia:"Viernes 7",  salidaDia:"Lunes 10"},
+  {id:"g3", semana:2, tipo:"semana", titulo:"Martes 11 — Viernes 14", entradaDia:"Martes 11",  salidaDia:"Viernes 14"},
+  {id:"g4", semana:2, tipo:"finde",  titulo:"Viernes 14 — Lunes 17",  entradaDia:"Viernes 14", salidaDia:"Lunes 17"},
+  {id:"g5", semana:3, tipo:"semana", titulo:"Martes 18 — Viernes 21", entradaDia:"Martes 18",  salidaDia:"Viernes 21"},
+  {id:"g6", semana:3, tipo:"finde",  titulo:"Viernes 21 — Lunes 24",  entradaDia:"Viernes 21", salidaDia:"Lunes 24"},
+  {id:"g7", semana:4, tipo:"semana", titulo:"Martes 25 — Viernes 28", entradaDia:"Martes 25",  salidaDia:"Viernes 28"},
+  {id:"g8", semana:4, tipo:"finde",  titulo:"Viernes 28 — Lunes 31",  entradaDia:"Viernes 28", salidaDia:"Lunes 31"},
+];
+const SEMANAS = {
+  1: "del 4 al 10 de agosto",
+  2: "del 11 al 17 de agosto",
+  3: "del 18 al 24 de agosto",
+  4: "del 25 al 31 de agosto",
+};
+const AVATAR_COLORS = ["#8b6a3e", "#5a4530", "#2e7d32", "#745b13", "#2c1f0e", "#005312"];
+const LS_PART = "guardias_participantes";
+
+// ─── ESTADO ──────────────────────────────────────────────────────────────────
+let participants = null;   // ids de quienes participan (null = aún no definido en este dispositivo)
+let checked = new Set();   // selección en la pantalla inicial
+let selections = [];       // filas de la tabla guardias_agosto
+let current = null;        // id del seminarista sorteado actualmente
+let undoStack = [];        // asignaciones de esta sesión (para deshacer)
+let rolling = false;
+let rollTimer = null;
+let navLock = false;       // evita que refetch re-navegue en medio de una acción
+let pendingAction = null;
+let dbReady = true;
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+const $ = (id) => document.getElementById(id);
+function initials(name) {
+  const p = name.trim().split(/\s+/);
+  return (p[0][0] + (p[1]?.[0] || "")).toUpperCase();
+}
+function avatarColor(id) {
+  let h = 0;
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+function shortName(name) {
+  const p = name.trim().split(/\s+/);
+  return p.length <= 2 ? name : p[0] + " " + p[p.length - 2];
+}
+function toast(msg, isError = false) {
+  const t = $("toast");
+  $("toastText").textContent = msg;
+  $("toastIcon").textContent = isError ? "error" : "check_circle";
+  t.classList.toggle("err", isError);
+  t.classList.add("show");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove("show"), 3200);
+}
+function showScreen(name) {
+  ["setupScreen", "drawScreen", "finalScreen"].forEach(s =>
+    $(s).classList.toggle("hidden", s !== name));
+}
+
+// ─── CUPOS ───────────────────────────────────────────────────────────────────
+function totalPersonas() {
+  return participants ? participants.length : Math.max(selections.length, 1);
+}
+function cupoBase() { return Math.max(1, Math.floor(totalPersonas() / GUARDIAS.length)); }
+function cupoMax()  { return Math.max(1, Math.ceil(totalPersonas() / GUARDIAS.length)); }
+function countsPorGuardia() {
+  const counts = {};
+  GUARDIAS.forEach(g => counts[g.id] = 0);
+  selections.forEach(s => { if (counts[s.guardia_id] !== undefined) counts[s.guardia_id]++; });
+  return counts;
+}
+// Una guardia acepta a alguien si está bajo el cupo base; el puesto adicional
+// solo se habilita cuando TODAS las guardias ya alcanzaron su cupo base.
+function estadoGuardia(gid, counts) {
+  const c = counts[gid];
+  const base = cupoBase(), max = cupoMax();
+  if (c < base) return "libre";
+  if (c >= max) return "llena";
+  const todasConBase = GUARDIAS.every(g => counts[g.id] >= base);
+  return todasConBase ? "libre" : "bloqueada";
+}
+
+// ─── 1. PANTALLA DE PARTICIPANTES ────────────────────────────────────────────
+function renderSetup() {
+  const list = $("namesList");
+  list.innerHTML = "";
+  STUDENTS.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(s => {
+    const btn = document.createElement("button");
+    btn.className = "name-item" + (checked.has(s.id) ? " on" : "");
+    btn.innerHTML = `
+      <span class="avatar" style="background:${avatarColor(s.id)}">${initials(s.name)}</span>
+      <span>${s.name}</span>
+      <span class="check"><span class="msym">check</span></span>`;
+    btn.onclick = () => {
+      checked.has(s.id) ? checked.delete(s.id) : checked.add(s.id);
+      renderSetup();
+    };
+    list.appendChild(btn);
+  });
+  const n = checked.size;
+  $("selCount").textContent = n;
+  $("toggleAllBtn").textContent = n === STUDENTS.length ? "Desmarcar todos" : "Marcar todos";
+  $("startBtn").disabled = n === 0;
+  const base = Math.max(1, Math.floor(n / 8)), max = Math.max(1, Math.ceil(n / 8));
+  $("setupHint").textContent = n === 0
+    ? "Marque al menos un seminarista."
+    : `Se repartirán ${n} seminaristas en 8 guardias (${base === max ? base : base + " a " + max} por guardia).`;
+}
+function toggleTodos() {
+  if (checked.size === STUDENTS.length) checked.clear();
+  else checked = new Set(STUDENTS.map(s => s.id));
+  renderSetup();
+}
+function comenzarSorteo() {
+  participants = [...checked];
+  localStorage.setItem(LS_PART, JSON.stringify(participants));
+  irADondeToque(true);
+}
+
+// ─── 2. SORTEO ───────────────────────────────────────────────────────────────
+function pendientes() {
+  const asignados = new Set(selections.map(s => s.seminarista_id));
+  return (participants || []).filter(id => !asignados.has(id));
+}
+
+function sortear(excluir) {
+  const pool = pendientes().filter(id => id !== excluir);
+  const source = pool.length ? pool : pendientes();
+  if (!source.length) { current = null; return; }
+  current = source[Math.floor(Math.random() * source.length)];
+}
+
+function animarNombre() {
+  const el = $("drawName"), av = $("drawAvatar");
+  if (!current) return;
+  if (rollTimer) { clearInterval(rollTimer); rollTimer = null; }
+  const target = byId[current];
+  rolling = true;
+  el.classList.add("rolling");
+  el.classList.remove("settled");
+  av.textContent = "?"; av.style.background = "var(--outline)";
+  const names = participants.map(id => byId[id].name);
+  let ticks = 0;
+  rollTimer = setInterval(() => {
+    el.textContent = names[Math.floor(Math.random() * names.length)];
+    if (++ticks >= 14) {
+      clearInterval(rollTimer); rollTimer = null;
+      el.classList.remove("rolling");
+      el.classList.add("settled");
+      el.textContent = target.name;
+      av.textContent = initials(target.name);
+      av.style.background = avatarColor(target.id);
+      rolling = false;
+    }
+  }, 75);
+}
+
+function sortearOtro() {
+  if (rolling) return;
+  if (pendientes().length <= 1) { toast("Es el único que queda por asignar.", true); return; }
+  sortear(current);
+  animarNombre();
+}
+
+function renderDraw() {
+  const total = participants.length;
+  const done = total - pendientes().length;
+  $("countChosen").textContent = done;
+  $("countTotal").textContent = total;
+  $("progressFill").style.width = (total ? (done / total) * 100 : 0) + "%";
+  $("undoBtn").classList.toggle("hidden", undoStack.length === 0);
+
+  if (current && byId[current] && !rolling) {
+    $("drawName").textContent = byId[current].name;
+    $("drawAvatar").textContent = initials(byId[current].name);
+    $("drawAvatar").style.background = avatarColor(current);
+  }
+
+  const counts = countsPorGuardia();
+  const cont = $("guardias");
+  cont.innerHTML = "";
+  [1, 2, 3, 4].forEach(w => {
+    const h = document.createElement("div");
+    h.className = "week-title";
+    h.innerHTML = `<span class="num">Semana ${["I","II","III","IV"][w-1]}</span> ${SEMANAS[w]}`;
+    cont.appendChild(h);
+    const grid = document.createElement("div");
+    grid.className = "cards-grid";
+    GUARDIAS.filter(g => g.semana === w).forEach(g => grid.appendChild(cardGuardia(g, counts)));
+    cont.appendChild(grid);
+  });
+}
+
+function cardGuardia(g, counts) {
+  const c = counts[g.id];
+  const estado = estadoGuardia(g.id, counts);
+  const base = cupoBase(), max = cupoMax();
+  const members = selections
+    .filter(s => s.guardia_id === g.id)
+    .sort((a, b) => a.seminarista_nombre.localeCompare(b.seminarista_nombre));
+
+  const card = document.createElement("div");
+  card.className = `gcard ${g.tipo}`;
+
+  const tipoLabel = g.tipo === "semana"
+    ? `<span class="type-chip"><span class="msym">wb_sunny</span>Guardia de semana</span>`
+    : `<span class="type-chip"><span class="msym">weekend</span>Fin de semana</span>`;
+
+  const memberHtml = members.length
+    ? members.map(m => `
+        <div class="member-row">
+          <span class="avatar" style="background:${avatarColor(m.seminarista_id)}">${initials(m.seminarista_nombre)}</span>
+          <b>${shortName(m.seminarista_nombre)}</b>
+        </div>`).join("")
+    : `<div class="empty"><span class="msym">person_add</span>Sin asignar todavía</div>`;
+
+  const dots = Array.from({length: max}, (_, i) =>
+    `<span class="slot-dot${i >= base ? " bonus" : ""}${i < c ? " full" : ""}"></span>`).join("");
+
+  let action;
+  if (estado === "llena") {
+    action = `<button class="btn-take is-full" disabled><span class="msym">lock</span>Completa</button>`;
+  } else if (estado === "bloqueada") {
+    action = `<div class="locked-hint"><span class="msym">hourglass_top</span>Se abre cuando todas tengan ${base}</div>`;
+  } else {
+    action = `<button class="btn-take" onclick="pedirAsignar('${g.id}')"><span class="msym">assignment_ind</span>Asignar aquí</button>`;
+  }
+
+  card.innerHTML = `
+    <div class="gcard-top">${tipoLabel}</div>
+    <h3>${g.titulo}</h3>
+    <div class="times">
+      <div class="time-box">
+        <div class="lbl"><span class="msym">login</span>Entrada</div>
+        <b>${g.entradaDia}</b><span>3:00 PM</span>
+      </div>
+      <div class="time-box">
+        <div class="lbl"><span class="msym">logout</span>Salida</div>
+        <b>${g.salidaDia}</b><span>9:00 AM</span>
+      </div>
+    </div>
+    <div class="members">${memberHtml}</div>
+    <div class="gcard-foot">
+      <div class="slots">${dots}<small>${c}/${max}</small></div>
+      ${action}
+    </div>`;
+  return card;
+}
+
+function pedirAsignar(gid) {
+  if (rolling) return;
+  if (!current) { toast("No hay seminarista sorteado.", true); return; }
+  const g = GUARDIAS.find(x => x.id === gid);
+  const s = byId[current];
+  abrirModal("Confirmar asignación",
+    `<b>${s.name}</b> hará la guardia del <b>${g.titulo}</b><br>(entrada ${g.entradaDia} 3:00 PM · salida ${g.salidaDia} 9:00 AM). ¿Confirma, Padre?`,
+    "Sí, asignar", () => asignar(gid));
+}
+
+async function asignar(gid) {
+  cerrarModal();
+  const quien = current;
+  navLock = true;
+  try {
+    await refetch(true);
+    if (selections.some(s => s.seminarista_id === quien)) {
+      toast("Este seminarista ya tiene guardia.", true);
+      navLock = false;
+      irADondeToque();
+      return;
+    }
+    if (estadoGuardia(gid, countsPorGuardia()) !== "libre") {
+      toast("Esa guardia ya no está disponible.", true);
+      renderDraw();
+      return;
+    }
+    const { error } = await sb.from(TABLE).upsert(
+      { seminarista_id: quien, seminarista_nombre: byId[quien].name, guardia_id: gid },
+      { onConflict: "seminarista_id" }
+    );
+    if (error) { console.error(error); toast("No se pudo guardar. Intente de nuevo.", true); return; }
+    undoStack.push(quien);
+    await refetch(true);
+    const g = GUARDIAS.find(x => x.id === gid);
+    toast(`${shortName(byId[quien].name)} → ${g.titulo}`);
+    if (pendientes().length) {
+      sortear();
+      renderDraw();
+      animarNombre();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      current = null;
+      mostrarFinal();
+    }
+  } finally {
+    navLock = false;
+  }
+}
+
+async function deshacerUltimo() {
+  if (!undoStack.length) return;
+  const quien = undoStack[undoStack.length - 1];
+  navLock = true;
+  try {
+    const { error } = await sb.from(TABLE).delete().eq("seminarista_id", quien);
+    if (error) { console.error(error); toast("No se pudo deshacer.", true); return; }
+    undoStack.pop();
+    await refetch(true);
+    current = quien;
+    showScreen("drawScreen");
+    renderDraw();
+    toast(`Asignación de ${shortName(byId[quien].name)} deshecha.`);
+  } finally {
+    navLock = false;
+  }
+}
+
+// ─── 3. ESQUEMA FINAL ────────────────────────────────────────────────────────
+function mostrarFinal() {
+  showScreen("finalScreen");
+  const pend = participants ? pendientes().length : 0;
+  const completo = participants && pend === 0;
+  $("finalIcon").textContent = completo ? "verified" : "pending";
+  $("finalSub").innerHTML = completo
+    ? `Todos los seminaristas tienen su guardia asignada. Lunes libres · Semana: martes 3:00 PM a viernes 9:00 AM · Fin de semana: viernes 3:00 PM a lunes 9:00 AM.`
+    : participants
+      ? `<span class="warn">Sorteo en curso:</span> faltan ${pend} seminaristas por asignar.`
+      : `Distribución registrada hasta ahora. Lunes libres · Entrada 3:00 PM · Salida 9:00 AM.`;
+  $("continueBtn").classList.toggle("hidden", !(participants && pend > 0));
+
+  const grid = $("schedGrid");
+  grid.innerHTML = "";
+  GUARDIAS.forEach(g => {
+    const members = selections
+      .filter(s => s.guardia_id === g.id)
+      .sort((a, b) => a.seminarista_nombre.localeCompare(b.seminarista_nombre));
+    const card = document.createElement("div");
+    card.className = `sched-card ${g.tipo}`;
+    card.innerHTML = `
+      <div class="schips">${g.tipo === "semana"
+        ? '<span class="type-chip"><span class="msym">wb_sunny</span>Semana</span>'
+        : '<span class="type-chip"><span class="msym">weekend</span>Fin de semana</span>'}</div>
+      <h3>${g.titulo}</h3>
+      <div class="hours">Entrada: ${g.entradaDia}, 3:00 PM · Salida: ${g.salidaDia}, 9:00 AM</div>
+      ${members.length ? members.map(m => `
+        <div class="sched-member">
+          <span class="avatar" style="background:${avatarColor(m.seminarista_id)}">${initials(m.seminarista_nombre)}</span>
+          <span>${m.seminarista_nombre}</span>
+          <button class="rm" title="Quitar de esta guardia" onclick="pedirQuitar('${m.seminarista_id}')"><span class="msym">close</span></button>
+        </div>`).join("") : '<div class="none">Sin asignaciones</div>'}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function pedirQuitar(sid) {
+  const row = selections.find(s => s.seminarista_id === sid);
+  if (!row) return;
+  const g = GUARDIAS.find(x => x.id === row.guardia_id);
+  abrirModal("Quitar de la guardia",
+    `<b>${row.seminarista_nombre}</b> saldrá de la guardia del <b>${g ? g.titulo : ""}</b> y volverá al sorteo. ¿Confirma?`,
+    "Sí, quitar", async () => {
+      cerrarModal();
+      navLock = true;
+      try {
+        const { error } = await sb.from(TABLE).delete().eq("seminarista_id", sid);
+        if (error) { console.error(error); toast("No se pudo quitar.", true); return; }
+        undoStack = undoStack.filter(id => id !== sid);
+        await refetch(true);
+        if (participants && !participants.includes(sid)) participants.push(sid);
+        if (participants) localStorage.setItem(LS_PART, JSON.stringify(participants));
+        current = sid;
+        showScreen("drawScreen");
+        renderDraw();
+        toast(`${shortName(row.seminarista_nombre)} volvió al sorteo.`);
+      } finally {
+        navLock = false;
+      }
+    }, true);
+}
+
+function volverAlSorteo() {
+  if (!pendientes().length) { mostrarFinal(); return; }
+  sortear();
+  showScreen("drawScreen");
+  renderDraw();
+  animarNombre();
+}
+
+function pedirReinicio() {
+  abrirModal("Reiniciar el sorteo",
+    `Se borrarán <b>todas</b> las asignaciones de guardias de agosto y se volverá a empezar desde cero. ¿Está seguro, Padre?`,
+    "Sí, borrar todo", async () => {
+      cerrarModal();
+      navLock = true;
+      try {
+        const { error } = await sb.from(TABLE).delete().neq("guardia_id", "");
+        if (error) { console.error(error); toast("No se pudo reiniciar.", true); return; }
+        localStorage.removeItem(LS_PART);
+        participants = null; current = null; undoStack = [];
+        checked = new Set(STUDENTS.map(s => s.id));
+        await refetch(true);
+        renderSetup();
+        showScreen("setupScreen");
+        toast("Sorteo reiniciado.");
+      } finally {
+        navLock = false;
+      }
+    }, true);
+}
+
+// ─── PDF ─────────────────────────────────────────────────────────────────────
+function descargarPDF() {
+  const hoy = new Date().toLocaleDateString("es-VE", { day: "2-digit", month: "long", year: "numeric" });
+  const sheet = $("printSheet");
+  sheet.innerHTML = `
+    <div class="ps-head">
+      <img src="Logo Seminario Borde (1).png" alt=""/>
+      <div>
+        <div class="sem">Seminario Mayor Santo Tomás de Aquino</div>
+        <h1>Distribución de Guardias — Agosto 2026</h1>
+      </div>
+    </div>
+    <div class="ps-meta">
+      Lunes libres · Guardia de semana: martes 3:00 PM a viernes 9:00 AM · Guardia de fin de semana: viernes 3:00 PM a lunes 9:00 AM.
+    </div>
+    <div class="ps-grid">
+      ${GUARDIAS.map(g => {
+        const members = selections
+          .filter(s => s.guardia_id === g.id)
+          .sort((a, b) => a.seminarista_nombre.localeCompare(b.seminarista_nombre));
+        return `
+        <div class="ps-card ${g.tipo}">
+          <div class="tag">${g.tipo === "semana" ? "Guardia de semana" : "Guardia de fin de semana"}</div>
+          <h3>${g.titulo} de agosto</h3>
+          <div class="hrs">Entrada: ${g.entradaDia}, 3:00 PM &nbsp;·&nbsp; Salida: ${g.salidaDia}, 9:00 AM</div>
+          ${members.length
+            ? `<ol>${members.map(m => `<li>${m.seminarista_nombre}</li>`).join("")}</ol>`
+            : `<div style="font-size:11px;font-style:italic;color:#7d766b">Sin asignaciones</div>`}
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="ps-foot">
+      <div>Generado el ${hoy}</div>
+      <div class="ps-sign"><div class="line"></div>Padre Rector</div>
+    </div>`;
+  window.print();
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function abrirModal(title, html, okLabel, onOk, danger = false) {
+  $("modalTitle").textContent = title;
+  $("modalText").innerHTML = html;
+  const ok = $("modalOk");
+  ok.textContent = okLabel;
+  ok.className = "btn-solid" + (danger ? " danger" : "");
+  pendingAction = onOk;
+  ok.onclick = () => pendingAction && pendingAction();
+  $("modalBack").classList.remove("hidden");
+}
+function cerrarModal() {
+  pendingAction = null;
+  $("modalBack").classList.add("hidden");
+}
+$("modalBack").addEventListener("click", (e) => { if (e.target.id === "modalBack") cerrarModal(); });
+
+// ─── DATOS ───────────────────────────────────────────────────────────────────
+async function refetch(silent = false) {
+  const { data, error } = await sb.from(TABLE).select("*");
+  $("loadingVeil").classList.add("hidden");
+  if (error) {
+    console.error(error);
+    if (esTablaFaltante(error)) { dbReady = false; mostrarSetupDB(); return; }
+    if (!silent) toast("Error de conexión. Reintentando…", true);
+    return;
+  }
+  dbReady = true;
+  $("setupNotice").classList.add("hidden");
+  selections = data || [];
+  if (navLock) return; // quien inició la acción se encarga de re-renderizar
+  // re-render de la pantalla visible
+  if (!$("drawScreen").classList.contains("hidden")) {
+    if (current && selections.some(s => s.seminarista_id === current)) irADondeToque();
+    else renderDraw();
+  } else if (!$("finalScreen").classList.contains("hidden")) {
+    mostrarFinal();
+  }
+}
+
+function esTablaFaltante(error) {
+  return error && (error.code === "42P01" || error.code === "PGRST205" ||
+    /guardias_agosto.*(not exist|schema cache)|schema cache.*guardias_agosto/i.test(error.message || ""));
+}
+
+const SETUP_SQL = `create table if not exists public.guardias_agosto (
+  id bigint generated by default as identity primary key,
+  seminarista_id text not null unique,
+  seminarista_nombre text not null,
+  guardia_id text not null,
+  created_at timestamptz not null default now()
+);
+alter table public.guardias_agosto enable row level security;
+create policy "lectura publica"  on public.guardias_agosto for select using (true);
+create policy "insertar publico" on public.guardias_agosto for insert with check (true);
+create policy "cambiar publico"  on public.guardias_agosto for update using (true) with check (true);
+create policy "salir publico"    on public.guardias_agosto for delete using (true);
+alter publication supabase_realtime add table public.guardias_agosto;`;
+
+function mostrarSetupDB() {
+  showScreen("");
+  const n = $("setupNotice");
+  n.className = "setup-card";
+  n.innerHTML = `
+    <h3>Falta un paso de configuración</h3>
+    <p>La tabla <b>guardias_agosto</b> aún no existe en Supabase. Entre al
+    <b>SQL Editor</b> del proyecto de Supabase, pegue este código y presione <b>Run</b>.
+    Luego recargue esta página.</p>
+    <pre>${SETUP_SQL}</pre>
+    <button class="btn-solid" onclick="navigator.clipboard.writeText(SETUP_SQL).then(()=>toast('SQL copiado al portapapeles'))">
+      Copiar SQL
+    </button>`;
+}
+
+// ─── NAVEGACIÓN SEGÚN ESTADO ─────────────────────────────────────────────────
+function irADondeToque(inicio = false) {
+  if (!dbReady) return;
+  if (!participants) {
+    if (selections.length) { mostrarFinal(); }       // visitante: ve el esquema
+    else { renderSetup(); showScreen("setupScreen"); }
+    return;
+  }
+  if (pendientes().length === 0) { current = null; mostrarFinal(); return; }
+  if (!current || selections.some(s => s.seminarista_id === current) || !pendientes().includes(current)) {
+    sortear();
+    showScreen("drawScreen");
+    renderDraw();
+    animarNombre();
+  } else {
+    showScreen("drawScreen");
+    renderDraw();
+  }
+  if (inicio) window.scrollTo({ top: 0 });
+}
+
+// ─── TIEMPO REAL ─────────────────────────────────────────────────────────────
+function subscribeRealtime() {
+  sb.channel("guardias-changes")
+    .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => refetch(true))
+    .subscribe();
+  setInterval(() => refetch(true), 30000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refetch(true); });
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+(async function init() {
+  const saved = localStorage.getItem(LS_PART);
+  if (saved) {
+    try { participants = JSON.parse(saved); } catch { participants = null; }
+    if (!Array.isArray(participants) || !participants.every(id => byId[id])) participants = null;
+  }
+  checked = participants ? new Set(participants) : new Set(STUDENTS.map(s => s.id));
+  await refetch();
+  $("loadingVeil").classList.add("hidden");
+  if (dbReady) irADondeToque(true);
+  subscribeRealtime();
+})();
+</script>
+</body>
+</html>
