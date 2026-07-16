@@ -403,9 +403,39 @@
     font-size: 11px; font-weight: 700; padding: 3px 9px;
     border-radius: 999px; flex: none;
   }
-  .mo-badge.libre { background: var(--green-bg); color: var(--liturgical-green); }
-  .mo-badge.llena { background: var(--surface-high); color: var(--outline); }
-  .mo-badge.aqui  { background: var(--green-bg); color: var(--liturgical-green); }
+  .mo-badge.libre        { background: var(--green-bg); color: var(--liturgical-green); }
+  .mo-badge.llena        { background: var(--surface-high); color: var(--outline); }
+  .mo-badge.aqui         { background: var(--green-bg); color: var(--liturgical-green); }
+  .mo-badge.intercambiar { background: #fff3e0; color: #e65100; }
+
+  /* Sub-panel de intercambio dentro del modal */
+  .swap-panel {
+    margin-top: 10px; padding: 12px 14px;
+    background: #fff3e0; border: 1.5px solid #e65100;
+    border-radius: 12px; display: none;
+  }
+  .swap-panel.visible { display: block; }
+  .swap-panel .swap-title {
+    font-size: 11.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    color: #e65100; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .swap-title .msym { font-size: 16px; }
+  .swap-person {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: 10px;
+    background: #fff; border: 1px solid #ffcc80;
+    margin-bottom: 6px; cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  .swap-person:last-child { margin-bottom: 0; }
+  .swap-person:hover { background: #fff3e0; border-color: #e65100; }
+  .swap-person .avatar { width: 28px; height: 28px; font-size: 11px; flex: none; }
+  .swap-person .sp-name { flex: 1; font-size: 13.5px; color: var(--ink-deep); }
+  .swap-person .sp-badge {
+    font-size: 11px; font-weight: 700; padding: 2px 8px;
+    border-radius: 999px; background: #e65100; color: #fff; flex: none;
+  }
 
   /* ── Modal ── */
   .modal-back {
@@ -507,7 +537,11 @@
       <div class="header-title serif">Guardias de Agosto</div>
       <div class="header-sub">Seminario Sto. Tomás de Aquino</div>
     </div>
-    <div class="header-right" id="headerActions"></div>
+    <div class="header-right" id="headerActions">
+      <button class="hbtn" onclick="pedirReinicio()" title="Reiniciar todo">
+        <span class="msym">restart_alt</span><span class="hbtn-label">Reiniciar</span>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -613,6 +647,11 @@
       <button class="btn-ghost" style="padding:6px 10px" onclick="cerrarMoveModal()"><span class="msym">close</span></button>
     </div>
     <div class="move-guards" id="moveGuardList"></div>
+    <!-- Sub-panel de intercambio -->
+    <div class="swap-panel" id="swapPanel">
+      <div class="swap-title"><span class="msym">swap_horiz</span>¿Con quién intercambiar?</div>
+      <div id="swapPersonList"></div>
+    </div>
   </div>
 </div>
 
@@ -1172,48 +1211,112 @@ function pedirQuitar(sid) {
     }, true);
 }
 
-// ─── MOVER A OTRA GUARDIA ──────────────────────────────────────────────────────────────
+// ─── MOVER / INTERCAMBIAR ────────────────────────────────────────────────────
 function pedirMover(sid) {
   const row = selections.find(s => s.seminarista_id === sid);
   if (!row) return;
-  const counts = countsPorGuardia();
-  const mb = $("moveModal");
 
-  // Header
-  $("moveAvatar").textContent  = initials(row.seminarista_nombre);
+  // Header del modal
+  $("moveAvatar").textContent = initials(row.seminarista_nombre);
   $("moveAvatar").style.background = avatarColor(row.seminarista_id);
-  $("moveName").textContent   = row.seminarista_nombre;
+  $("moveName").textContent = row.seminarista_nombre;
   const gActual = GUARDIAS.find(x => x.id === row.guardia_id);
-  $("moveFrom").textContent   = `Actualmente en: ${gActual ? gActual.titulo : ""}`;
+  $("moveFrom").textContent = `Actualmente en: ${gActual ? gActual.titulo : ""}`;
 
-  // Guard list
-  const list = $("moveGuardList");
+  // Ocultar sub-panel
+  $("swapPanel").classList.remove("visible");
+  $("swapPersonList").innerHTML = "";
+
+  renderMoveList(sid, null);
+  $("moveModal").classList.remove("hidden");
+}
+
+function renderMoveList(sid, swapTargetGid) {
+  const row    = selections.find(s => s.seminarista_id === sid);
+  const counts = countsPorGuardia();
+  const list   = $("moveGuardList");
   list.innerHTML = "";
+
   GUARDIAS.forEach(g => {
-    const max    = cupoParaGuardia(g.id);
-    const cnt    = counts[g.id];
+    const max       = cupoParaGuardia(g.id);
+    const cnt       = counts[g.id];
     const isCurrent = g.id === row.guardia_id;
     const isFull    = !isCurrent && cnt >= max;
+    const isSwapTarget = g.id === swapTargetGid;
     const esFinde   = g.tipo === "finde";
 
     const opt = document.createElement("div");
-    opt.className = `move-option${esFinde ? " finde-opt" : ""}${isCurrent ? " current-guard" : ""}${isFull ? " is-full" : ""}`;
+    let cls = `move-option${esFinde ? " finde-opt" : ""}`;
+    if (isCurrent)    cls += " current-guard";
+    if (isSwapTarget) cls += " swap-active";
+    opt.className = cls;
+    opt.style.cssText = isSwapTarget
+      ? "border-color:#e65100;background:#fff3e0;"
+      : "";
+
+    const badgeClass = isCurrent ? "aqui" : isFull ? "intercambiar" : "libre";
+    const badgeText  = isCurrent ? "Aquí está" : isFull ? "Intercambiar ⇄" : "Disponible";
+
     opt.innerHTML = `
       <div class="mo-icon"><span class="msym">${esFinde ? "weekend" : "wb_sunny"}</span></div>
       <div class="mo-info">
         <b>${g.titulo}</b>
         <span>${cnt}/${max} asignados · ${esFinde ? "Fin de semana" : "Guardia de semana"}</span>
       </div>
-      <span class="mo-badge ${isCurrent ? "aqui" : isFull ? "llena" : "libre"}">
-        ${isCurrent ? "Aquí está" : isFull ? "Completa" : "Disponible"}
-      </span>`;
+      <span class="mo-badge ${badgeClass}">${badgeText}</span>`;
+
     if (!isCurrent && !isFull) {
+      // Mover directamente
       opt.onclick = () => moverA(sid, g.id);
+    } else if (!isCurrent && isFull) {
+      // Mostrar sub-panel para intercambio
+      opt.onclick = () => mostrarSwapPanel(sid, row.guardia_id, g.id);
     }
     list.appendChild(opt);
   });
+}
 
-  mb.classList.remove("hidden");
+function mostrarSwapPanel(sid, gidOrigen, gidDestino) {
+  // Resalta la guardia seleccionada en la lista
+  const row    = selections.find(s => s.seminarista_id === sid);
+  renderMoveList(sid, gidDestino);
+
+  const panel   = $("swapPanel");
+  const listEl  = $("swapPersonList");
+  listEl.innerHTML = "";
+
+  const miembros = selections.filter(s => s.guardia_id === gidDestino);
+  const gDest    = GUARDIAS.find(x => x.id === gidDestino);
+
+  miembros.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "swap-person";
+    div.innerHTML = `
+      <span class="avatar" style="background:${avatarColor(m.seminarista_id)}">${initials(m.seminarista_nombre)}</span>
+      <span class="sp-name">${m.seminarista_nombre}</span>
+      <span class="sp-badge">Intercambiar</span>`;
+    div.onclick = () => confirmarIntercambio(
+      sid, row.seminarista_nombre, gidOrigen,
+      m.seminarista_id, m.seminarista_nombre, gidDestino
+    );
+    listEl.appendChild(div);
+  });
+
+  panel.classList.add("visible");
+}
+
+function confirmarIntercambio(sidA, nombreA, gidA, sidB, nombreB, gidB) {
+  const gA = GUARDIAS.find(x => x.id === gidA);
+  const gB = GUARDIAS.find(x => x.id === gidB);
+  cerrarMoveModal();
+  abrirModal(
+    "Confirmar intercambio",
+    `<b>${nombreA}</b> irá a <b>${gB ? gB.titulo : gidB}</b><br>
+     y <b>${nombreB}</b> irá a <b>${gA ? gA.titulo : gidA}</b>.<br><br>
+     ¿Confirma el intercambio, Padre?`,
+    "Sí, intercambiar",
+    () => intercambiarCon(sidA, gidA, sidB, gidB)
+  );
 }
 
 async function moverA(sid, nuevaGid) {
@@ -1222,7 +1325,6 @@ async function moverA(sid, nuevaGid) {
   cerrarMoveModal();
   navLock = true;
   try {
-    // Verify destination still has room
     await refetch(true);
     const counts = countsPorGuardia();
     if (estadoGuardia(nuevaGid, counts) === "llena") {
@@ -1233,10 +1335,37 @@ async function moverA(sid, nuevaGid) {
     const { error } = await sb.from(TABLE)
       .update({ guardia_id: nuevaGid })
       .eq("seminarista_id", sid);
-    if (error) { console.error(error); toast("No se pudo mover.", true); return; }
+    if (error) { console.error(error); toast("No se pudo mover.", true); navLock = false; return; }
     await refetch(true);
     const gNueva = GUARDIAS.find(x => x.id === nuevaGid);
-    toast(`${shortName(row.seminarista_nombre)} movido a ${gNueva ? gNueva.titulo : ""}. ✓`);
+    toast(`✓ ${shortName(row.seminarista_nombre)} → ${gNueva ? gNueva.titulo : nuevaGid}`);
+    mostrarFinal();
+  } finally {
+    navLock = false;
+  }
+}
+
+async function intercambiarCon(sidA, gidA, sidB, gidB) {
+  cerrarModal();
+  navLock = true;
+  try {
+    // Mover A → gidB  y  B → gidA en paralelo
+    const [r1, r2] = await Promise.all([
+      sb.from(TABLE).update({ guardia_id: gidB }).eq("seminarista_id", sidA),
+      sb.from(TABLE).update({ guardia_id: gidA }).eq("seminarista_id", sidB),
+    ]);
+    if (r1.error || r2.error) {
+      console.error(r1.error || r2.error);
+      toast("No se pudo intercambiar. Intente de nuevo.", true);
+      navLock = false;
+      return;
+    }
+    await refetch(true);
+    const rowA = byId[sidA] ? byId[sidA].name : sidA;
+    const rowB = byId[sidB] ? byId[sidB].name : sidB;
+    const gA   = GUARDIAS.find(x => x.id === gidA);
+    const gB   = GUARDIAS.find(x => x.id === gidB);
+    toast(`⇄ ${shortName(rowA)} ⇔ ${shortName(rowB)} intercambiados`);
     mostrarFinal();
   } finally {
     navLock = false;
