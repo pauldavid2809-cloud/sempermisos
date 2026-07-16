@@ -48,6 +48,7 @@
     user-select: none;
   }
   button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  input { font: inherit; }
 
   .paper-texture { background-image: radial-gradient(circle at 50% 0%, rgba(139,106,62,0.06), transparent 60%); }
 
@@ -65,6 +66,15 @@
   .header-inner img { width: 44px; height: 44px; object-fit: contain; }
   .header-title { font-size: 17px; font-weight: 700; letter-spacing: .2px; }
   .header-sub { font-size: 11.5px; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 1.2px; }
+  .header-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .hbtn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 600; color: var(--wood-noble);
+    background: var(--surface-low); border: 1px solid var(--outline-variant);
+    border-radius: 999px; padding: 6px 12px;
+  }
+  .hbtn:hover { background: var(--surface-high); }
+  .hbtn .msym { font-size: 16px; }
 
   main { max-width: 1060px; margin: 0 auto; padding: 20px 16px 80px; }
 
@@ -75,8 +85,8 @@
     background: var(--altar-gold); flex: none;
   }
 
-  /* ── Pantalla de selección de participantes ── */
-  .setup-wrap { max-width: 560px; margin: 0 auto; padding: 20px 0 40px; }
+  /* ── Setup (participantes) ── */
+  .setup-wrap { max-width: 560px; margin: 0 auto; padding: 30px 16px 40px; }
   .setup-logo { display: block; width: 92px; height: 92px; object-fit: contain; margin: 0 auto 14px; }
   .setup-wrap h1 { font-family: 'Libre Caslon Text', serif; text-align: center; font-size: clamp(24px, 6vw, 32px); color: var(--ink-deep); }
   .setup-wrap .sub { text-align: center; color: var(--on-surface-variant); margin: 8px 0 4px; font-size: 14.5px; }
@@ -129,26 +139,14 @@
   .progress-bar { height: 6px; border-radius: 999px; background: var(--surface-high); margin-top: 6px; overflow: hidden; }
   .progress-bar > div { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--altar-gold), var(--wood-noble)); transition: width .5s ease; width: 0%; }
 
-  .cupos-note {
-    max-width: 620px; margin: 0 auto 16px; text-align: center;
-    font-size: 13px; color: var(--on-surface-variant);
-    background: var(--surface-low); border: 1px dashed var(--outline-variant);
-    border-radius: 10px; padding: 8px 14px;
-  }
-  .cupos-note b { color: var(--wood-noble); }
-
+  /* ── Slot machine card ── */
   .draw-card {
     max-width: 620px; margin: 0 auto 8px; text-align: center;
     background: #fff; border: 1px solid var(--outline-variant);
     border-top: 4px solid var(--altar-gold);
     border-radius: 16px; padding: 26px 20px 22px;
     box-shadow: 0 6px 24px rgba(26,18,0,0.09);
-    position: relative;
-  }
-  .draw-card.rolling { animation: cardGlow 0.9s ease-in-out infinite; }
-  @keyframes cardGlow {
-    0%, 100% { box-shadow: 0 6px 24px rgba(26,18,0,0.09); border-top-color: var(--altar-gold); }
-    50% { box-shadow: 0 6px 34px rgba(139,106,62,0.45); border-top-color: #e5c372; }
+    position: relative; overflow: hidden;
   }
   .draw-card .lbl {
     font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
@@ -156,36 +154,74 @@
     display: flex; align-items: center; justify-content: center; gap: 8px;
   }
   .draw-card .lbl::before, .draw-card .lbl::after { content: ""; height: 1px; width: 46px; background: var(--outline-variant); }
+
+  /* Slot window that clips the rolling names */
+  .slot-window {
+    height: 68px; overflow: hidden; position: relative;
+    margin: 10px auto 0; max-width: 500px;
+  }
+  .slot-window::before, .slot-window::after {
+    content: ""; position: absolute; left: 0; right: 0; height: 24px; z-index: 2; pointer-events: none;
+  }
+  .slot-window::before { top: 0; background: linear-gradient(to bottom, rgba(255,255,255,1), transparent); }
+  .slot-window::after  { bottom: 0; background: linear-gradient(to top,   rgba(255,255,255,1), transparent); }
+  .slot-reel {
+    display: flex; flex-direction: column; align-items: center;
+    transition: transform 0s;
+  }
+  .slot-reel.spinning {
+    transition: none;
+  }
+  .slot-item {
+    height: 68px; display: flex; align-items: center; justify-content: center;
+    font-family: 'Libre Caslon Text', serif;
+    font-size: clamp(19px, 4.8vw, 27px); font-weight: 700;
+    color: var(--ink-deep); white-space: nowrap; padding: 0 12px;
+    width: 100%;
+  }
+  .slot-item.active {
+    color: var(--ink-deep);
+  }
+  .slot-item.blur-item {
+    color: var(--outline); filter: blur(1.5px);
+  }
+
+  /* Avatar for draw */
   .draw-avatar {
-    width: 68px; height: 68px; font-size: 23px; margin: 14px auto 10px;
-    display: flex;
-    box-shadow: 0 4px 12px rgba(44,31,14,0.25);
-    transition: transform .2s ease;
+    width: 72px; height: 72px; font-size: 24px; margin: 12px auto 0;
+    display: flex; border-radius: 50%;
+    box-shadow: 0 4px 14px rgba(44,31,14,0.28);
+    transition: background .3s ease;
+    position: relative; z-index: 1;
   }
-  .draw-card.rolling .draw-avatar { animation: avatarSpin 0.7s linear infinite; background: var(--outline) !important; }
-  @keyframes avatarSpin {
-    0% { transform: rotate(-8deg) scale(.96); }
-    50% { transform: rotate(8deg) scale(1.04); }
-    100% { transform: rotate(-8deg) scale(.96); }
+  .draw-avatar.pulse {
+    animation: avatarPulse .6s ease;
   }
-  .draw-avatar.landed { animation: avatarPop .5s cubic-bezier(.2,1.6,.45,1); }
-  @keyframes avatarPop {
-    0% { transform: scale(.3); }
-    70% { transform: scale(1.15); }
+  @keyframes avatarPulse {
+    0%   { transform: scale(0.6); box-shadow: 0 0 0 0 rgba(139,106,62,0.5); }
+    50%  { transform: scale(1.15); box-shadow: 0 0 0 16px rgba(139,106,62,0); }
     100% { transform: scale(1); }
+  }
+
+  .draw-card .settled-name {
+    font-family: 'Libre Caslon Text', serif; font-size: clamp(21px, 5.4vw, 30px);
+    color: var(--ink-deep); font-weight: 700; margin-top: 8px;
+    animation: settle .45s cubic-bezier(.34,1.56,.64,1);
+    min-height: 1.3em;
+  }
+  @keyframes settle {
+    0%   { transform: scale(.82) translateY(8px); opacity: 0; }
+    70%  { transform: scale(1.06) translateY(-2px); }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
   }
   .draw-name {
     font-family: 'Libre Caslon Text', serif; font-size: clamp(21px, 5.4vw, 30px);
     color: var(--ink-deep); min-height: 1.3em; font-weight: 700;
   }
-  .draw-name.rolling { color: var(--outline); filter: blur(.6px); }
-  .draw-name.settled { animation: settle .55s cubic-bezier(.2,1.4,.4,1); }
-  @keyframes settle {
-    0% { transform: scale(.85); opacity: .3; }
-    60% { transform: scale(1.06); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  .draw-card .instr { font-size: 13.5px; color: var(--on-surface-variant); margin-top: 8px; }
+  .draw-name.rolling { color: var(--outline); }
+  .draw-name.settled { animation: settle .45s ease; }
+
+  .draw-card .instr { font-size: 13.5px; color: var(--on-surface-variant); margin-top: 10px; }
   .draw-card .instr .msym { font-size: 15px; vertical-align: -2px; color: var(--altar-gold); }
   .draw-acts { display: flex; justify-content: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
   .btn-mini {
@@ -198,15 +234,28 @@
   .btn-mini .msym { font-size: 15px; }
   .btn-mini.danger { color: var(--error); }
 
-  /* confeti */
-  .confetti-piece {
-    position: absolute; top: 42%; width: 9px; height: 13px;
-    border-radius: 2px; pointer-events: none; z-index: 5; opacity: 1;
-    animation: confettiFall 1.35s cubic-bezier(.25,.5,.45,1) forwards;
+  /* ── Confetti / particle burst ── */
+  .particle {
+    position: fixed; border-radius: 50%; pointer-events: none; z-index: 999;
+    animation: particleFly var(--dur, 1.2s) ease-out forwards;
   }
-  @keyframes confettiFall {
-    0% { transform: translate(0, -14px) rotate(0deg) scale(1); opacity: 1; }
-    100% { transform: translate(var(--dx), 150px) rotate(var(--rot)) scale(.85); opacity: 0; }
+  @keyframes particleFly {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  }
+
+  /* Gold shimmer sweep on reveal */
+  .draw-card::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(139,106,62,0.12) 50%, transparent 70%);
+    transform: translateX(-100%); pointer-events: none; border-radius: 16px;
+  }
+  .draw-card.shimmer::after {
+    animation: shimmerSweep .8s ease forwards;
+  }
+  @keyframes shimmerSweep {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
   }
 
   /* ── Semanas y tarjetas ── */
@@ -238,7 +287,7 @@
   }
   .gcard.finde::before { background: var(--wood-noble); }
 
-  .gcard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .gcard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .type-chip {
     display: inline-flex; align-items: center; gap: 6px;
     font-size: 10.5px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase;
@@ -247,14 +296,6 @@
   }
   .gcard.finde .type-chip { color: #fff; background: var(--wood-noble); }
   .type-chip .msym { font-size: 15px; }
-  .cupo-chip {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: 10.5px; font-weight: 700;
-    color: var(--on-surface-variant); background: var(--surface-low);
-    border: 1px solid var(--outline-variant);
-    padding: 3px 9px; border-radius: 999px;
-  }
-  .cupo-chip .msym { font-size: 13px; }
 
   .gcard h3 { font-family: 'Libre Caslon Text', serif; font-size: 20px; color: var(--ink-deep); font-weight: 700; }
 
@@ -313,7 +354,7 @@
   }
   .sched-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--altar-gold); }
   .sched-card.finde::before { background: var(--wood-noble); }
-  .sched-card .schips { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+  .sched-card .schips { display: flex; gap: 6px; margin-bottom: 6px; }
   .sched-card h3 { font-family: 'Libre Caslon Text', serif; font-size: 19px; color: var(--ink-deep); }
   .sched-card .hours { font-size: 12.5px; color: var(--on-surface-variant); margin: 2px 0 10px; }
   .sched-member {
@@ -321,10 +362,80 @@
     padding: 5px 0; border-top: 1px dashed var(--surface-high);
   }
   .sched-member .avatar { width: 26px; height: 26px; font-size: 10.5px; }
-  .sched-member .rm { margin-left: auto; color: var(--outline-variant); display: inline-flex; }
+  .sched-member .member-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sched-member .member-acts { margin-left: auto; display: flex; gap: 2px; flex: none; }
+  .sched-member .mv { color: var(--altar-gold); display: inline-flex; }
+  .sched-member .mv:hover { color: var(--wood-noble); }
+  .sched-member .rm { color: var(--outline-variant); display: inline-flex; }
   .sched-member .rm:hover { color: var(--error); }
-  .sched-member .rm .msym { font-size: 18px; }
+  .sched-member .mv .msym, .sched-member .rm .msym { font-size: 18px; }
   .sched-card .none { font-size: 13px; font-style: italic; color: var(--outline); padding-top: 4px; }
+
+  /* ── Modal de mover ── */
+  #moveModal .modal { max-width: 500px; }
+  .move-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .move-header .avatar { width: 38px; height: 38px; font-size: 14px; flex: none; }
+  .move-header .info { flex: 1; }
+  .move-header .info b { display: block; font-size: 15px; color: var(--ink-deep); }
+  .move-header .info span { font-size: 12.5px; color: var(--on-surface-variant); }
+  .move-guards { display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; }
+  .move-option {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface-low); border: 1.5px solid var(--outline-variant);
+    border-radius: 12px; padding: 10px 14px; cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .move-option:hover { border-color: var(--altar-gold); background: var(--gold-bg); }
+  .move-option.is-full { opacity: .4; cursor: not-allowed; pointer-events: none; }
+  .move-option.current-guard { border-color: var(--liturgical-green); background: var(--green-bg); cursor: not-allowed; pointer-events: none; }
+  .move-option .mo-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--gold-bg); display: flex; align-items: center; justify-content: center;
+    flex: none;
+  }
+  .move-option.finde-opt .mo-icon { background: var(--surface-container); }
+  .move-option .mo-icon .msym { font-size: 18px; color: var(--altar-gold); }
+  .move-option.finde-opt .mo-icon .msym { color: var(--wood-noble); }
+  .move-option .mo-info { flex: 1; }
+  .move-option .mo-info b { display: block; font-size: 13.5px; color: var(--ink-deep); }
+  .move-option .mo-info span { font-size: 12px; color: var(--on-surface-variant); }
+  .move-option .mo-badge {
+    font-size: 11px; font-weight: 700; padding: 3px 9px;
+    border-radius: 999px; flex: none;
+  }
+  .mo-badge.libre        { background: var(--green-bg); color: var(--liturgical-green); }
+  .mo-badge.llena        { background: var(--surface-high); color: var(--outline); }
+  .mo-badge.aqui         { background: var(--green-bg); color: var(--liturgical-green); }
+  .mo-badge.intercambiar { background: #fff3e0; color: #e65100; }
+
+  /* Sub-panel de intercambio dentro del modal */
+  .swap-panel {
+    margin-top: 10px; padding: 12px 14px;
+    background: #fff3e0; border: 1.5px solid #e65100;
+    border-radius: 12px; display: none;
+  }
+  .swap-panel.visible { display: block; }
+  .swap-panel .swap-title {
+    font-size: 11.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    color: #e65100; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .swap-title .msym { font-size: 16px; }
+  .swap-person {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: 10px;
+    background: #fff; border: 1px solid #ffcc80;
+    margin-bottom: 6px; cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  .swap-person:last-child { margin-bottom: 0; }
+  .swap-person:hover { background: #fff3e0; border-color: #e65100; }
+  .swap-person .avatar { width: 28px; height: 28px; font-size: 11px; flex: none; }
+  .swap-person .sp-name { flex: 1; font-size: 13.5px; color: var(--ink-deep); }
+  .swap-person .sp-badge {
+    font-size: 11px; font-weight: 700; padding: 2px 8px;
+    border-radius: 999px; background: #e65100; color: #fff; flex: none;
+  }
 
   /* ── Modal ── */
   .modal-back {
@@ -419,12 +530,17 @@
 <body class="paper-texture">
 
 <!-- ═══════════ HEADER ═══════════ -->
-<header class="app">
+<header class="app" id="mainHeader">
   <div class="header-inner">
     <img src="Logo Seminario Borde (1).png" alt="Escudo"/>
     <div>
       <div class="header-title serif">Guardias de Agosto</div>
       <div class="header-sub">Seminario Sto. Tomás de Aquino</div>
+    </div>
+    <div class="header-right" id="headerActions">
+      <button class="hbtn" onclick="pedirReinicio()" title="Reiniciar todo">
+        <span class="msym">restart_alt</span><span class="hbtn-label">Reiniciar</span>
+      </button>
     </div>
   </div>
 </header>
@@ -441,7 +557,7 @@
   <div id="setupScreen" class="setup-wrap hidden">
     <img class="setup-logo" src="Logo Seminario Borde (1).png" alt="Escudo del Seminario"/>
     <h1>Sorteo de Guardias</h1>
-    <p class="sub">Padre Rector: confirme los seminaristas que harán guardia en agosto y comience el sorteo.</p>
+    <p class="sub">Padre Rector: marque los seminaristas que harán guardia en agosto y comience el sorteo.</p>
     <p class="sub2">Agosto 2026 · Lunes libres</p>
     <div class="list-tools">
       <span><b id="selCount">0</b> seleccionados</span>
@@ -466,12 +582,17 @@
       <div class="progress-bar"><div id="progressFill"></div></div>
     </div>
 
-    <div class="cupos-note" id="cuposNote"></div>
-
     <div class="draw-card" id="drawCard">
       <div class="lbl">Le toca elegir a</div>
       <span class="avatar draw-avatar" id="drawAvatar">?</span>
-      <div class="draw-name" id="drawName">—</div>
+
+      <!-- Slot machine window -->
+      <div class="slot-window" id="slotWindow">
+        <div class="slot-reel" id="slotReel">
+          <div class="slot-item" id="drawName">—</div>
+        </div>
+      </div>
+
       <p class="instr"><span class="msym">arrow_downward</span> Asígnele una de las guardias disponibles</p>
       <div class="draw-acts">
         <button class="btn-mini" onclick="sortearOtro()"><span class="msym">shuffle</span>Sortear otro nombre</button>
@@ -514,6 +635,26 @@
   </div>
 </div>
 
+<!-- ═══════════ MODAL MOVER ═══════════ -->
+<div id="moveModal" class="modal-back hidden" onclick="if(event.target.id==='moveModal')cerrarMoveModal()">
+  <div class="modal" style="max-width:500px">
+    <div class="move-header">
+      <span class="avatar draw-avatar" id="moveAvatar" style="width:38px;height:38px;font-size:14px">?</span>
+      <div class="info">
+        <b id="moveName"></b>
+        <span id="moveFrom"></span>
+      </div>
+      <button class="btn-ghost" style="padding:6px 10px" onclick="cerrarMoveModal()"><span class="msym">close</span></button>
+    </div>
+    <div class="move-guards" id="moveGuardList"></div>
+    <!-- Sub-panel de intercambio -->
+    <div class="swap-panel" id="swapPanel">
+      <div class="swap-title"><span class="msym">swap_horiz</span>¿Con quién intercambiar?</div>
+      <div id="swapPersonList"></div>
+    </div>
+  </div>
+</div>
+
 <div id="toast"><span class="msym" id="toastIcon">check_circle</span><span id="toastText"></span></div>
 
 <!-- ═══════════ HOJA PARA PDF ═══════════ -->
@@ -521,41 +662,40 @@
 
 <script>
 // ─── SUPABASE ────────────────────────────────────────────────────────────────
-const SUPABASE_URL = "https://yisjmtejpokkvupohkhd.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlpc2ptdGVqcG9ra3Z1cG9oa2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzg3MDEsImV4cCI6MjA5NDcxNDcwMX0.lBvH612ohhQVZdYnlcl6CKwVGJinZ6_Lnk6w8M495ns";
+const SUPABASE_URL = "https://xpfufunbqkprzryhqjtn.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwZnVmdW5icWtwcnpyeWhxanRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyMDAxNTksImV4cCI6MjA5OTc3NjE1OX0.PFJEX_I8gbVwTtNZOOCthSuIBerXHM61NyDyf5-zMnM";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const TABLE = "guardias_agosto";
 
-// ─── LOS 22 SEMINARISTAS DEL SORTEO ──────────────────────────────────────────
+// ─── SEMINARISTAS ────────────────────────────────────────────────────────────
 const STUDENTS = [
-  {id:"s24", name:"Armando de Jesús Celis Prieto"},
-  {id:"s01", name:"Alfenyer Alfonso Fernández Luzardo"},
-  {id:"s31", name:"José Miguel Sierra Nava"},
-  {id:"s29", name:"Alejandro Rubio"},
-  {id:"s06", name:"Osmán José Vargas Quintero"},
-  {id:"s12", name:"Yorvi Jose Sierra Lopez"},
-  {id:"s08", name:"Rances Isaac Mercado Osorio"},
-  {id:"s13", name:"Luis Carlos Polanco Fernández"},
-  {id:"s22", name:"Gregori José García Hernández"},
-  {id:"s03", name:"Mario José Soto Villasmil"},
-  {id:"s05", name:"Jorge Reyes"},
-  {id:"s09", name:"Luis Ángel Benítez Moran"},
-  {id:"s14", name:"José Acosta"},
-  {id:"s27", name:"Dany Rafael Araujo Guedez"},
-  {id:"s32", name:"David Paz"},
-  {id:"s10", name:"Elio Barboza"},
-  {id:"s26", name:"Andrés Alfonso Araviche Chiquito"},
+  {id:"s01", name:"Armando Celis"},
+  {id:"s02", name:"Alfenyer Fernández"},
+  {id:"s03", name:"José Miguel Sierra"},
+  {id:"s04", name:"Alejandro Rubio"},
+  {id:"s05", name:"Osman Vargas"},
+  {id:"s06", name:"Yorbi Sierra"},
+  {id:"s07", name:"Rances Mercado"},
+  {id:"s08", name:"Luis Polanco"},
+  {id:"s09", name:"Gregory García"},
+  {id:"s10", name:"Mario Soto"},
+  {id:"s11", name:"Jorge Reyes"},
+  {id:"s12", name:"Luis Ángel Benítez"},
+  {id:"s13", name:"José Acosta"},
+  {id:"s14", name:"Dany Araujo"},
+  {id:"s15", name:"David Paz"},
+  {id:"s16", name:"Elio Barboza"},
+  {id:"s17", name:"Andrés Araviche"},
   {id:"s18", name:"Nixon Torrealba"},
-  {id:"s15", name:"Rixio García"},
-  {id:"s25", name:"Ricardo Andrés Márquez Colina"},
-  {id:"s16", name:"Jesús Tudares"},
-  {id:"s20", name:"Paul David Urdaneta Berrueta"},
+  {id:"s19", name:"Rixio García"},
+  {id:"s20", name:"Ricardo Márquez"},
+  {id:"s21", name:"Jesús Tudares"},
+  {id:"s22", name:"Paul Urdaneta"},
 ];
 const byId = Object.fromEntries(STUDENTS.map(s => [s.id, s]));
 
 // ─── GUARDIAS DE AGOSTO 2026 ─────────────────────────────────────────────────
-// Lunes libres. Semana: martes 3PM → viernes 9AM.
-// Fin de semana: viernes 3PM → lunes 9AM — la guardia más pesada, lleva más gente.
+// Lunes libres. Semana: martes 3PM → viernes 9AM. Fin de semana: viernes 3PM → lunes 9AM.
 const GUARDIAS = [
   {id:"g1", semana:1, tipo:"semana", titulo:"Martes 4 — Viernes 7",   entradaDia:"Martes 4",   salidaDia:"Viernes 7"},
   {id:"g2", semana:1, tipo:"finde",  titulo:"Viernes 7 — Lunes 10",   entradaDia:"Viernes 7",  salidaDia:"Lunes 10"},
@@ -573,7 +713,6 @@ const SEMANAS = {
   4: "del 25 al 31 de agosto",
 };
 const AVATAR_COLORS = ["#8b6a3e", "#5a4530", "#2e7d32", "#745b13", "#2c1f0e", "#005312"];
-const CONFETTI_COLORS = ["#8b6a3e", "#2e7d32", "#e5c372", "#5a4530", "#ffdc89", "#d6c59f"];
 const LS_PART = "guardias_participantes";
 
 // ─── ESTADO ──────────────────────────────────────────────────────────────────
@@ -617,22 +756,14 @@ function showScreen(name) {
     $(s).classList.toggle("hidden", s !== name));
 }
 
-// ─── CUPOS Y DISTRIBUCIÓN ────────────────────────────────────────────────────
-// La gente se reparte entre 8 guardias dando siempre más peso a los fines de
-// semana (la guardia más pesada). Con 22: semana 2 c/u, fin de semana 3 a 4.
-function totalPersonas() {
-  return participants ? participants.length : Math.max(selections.length, 1);
-}
-function cupos() {
-  const N = totalPersonas();
-  const semanaCupo = Math.max(1, Math.floor(N / 8));
-  const extra = Math.max(0, N - semanaCupo * 8);
-  const findeBase = semanaCupo + Math.floor(extra / 4);
-  const rem = extra % 4;
-  return {
-    semana: { base: semanaCupo, max: semanaCupo },
-    finde:  { base: findeBase, max: findeBase + (rem > 0 ? 1 : 0) },
-  };
+// ─── CUPOS ───────────────────────────────────────────────────────────────────
+// Fines de semana (vie→lun): 3 personas — las más pesadas.
+// Guardias de semana: g1 y g5 (semanas 1 y 3) tienen 3 — para llegar a 22 en total.
+// g3 y g7 (semanas 2 y 4) tienen 2.
+// Total: 3+3+3+3+2+3+2+3 = 22 ✓
+const CUPOS = { g1:3, g2:3, g3:2, g4:3, g5:3, g6:3, g7:2, g8:3 };
+function cupoParaGuardia(gid) {
+  return CUPOS[gid] ?? 2;
 }
 function countsPorGuardia() {
   const counts = {};
@@ -640,22 +771,13 @@ function countsPorGuardia() {
   selections.forEach(s => { if (counts[s.guardia_id] !== undefined) counts[s.guardia_id]++; });
   return counts;
 }
-// Cada guardia acepta gente hasta su cupo base. El puesto de refuerzo de los
-// fines de semana solo se abre cuando TODAS las guardias alcanzaron su cupo
-// base, para que el reparto quede parejo y ordenado.
+// Estado: libre si hay cupo, llena si completó su límite, bloqueada nunca
+// (con cupos fijos por tipo no hace falta el mecanismo de "esperar a que todas tengan base").
 function estadoGuardia(gid, counts) {
-  const g = GUARDIAS.find(x => x.id === gid);
-  const C = cupos();
-  const { base, max } = C[g.tipo];
   const c = counts[gid];
-  if (c < base) return "libre";
+  const max = cupoParaGuardia(gid);
   if (c >= max) return "llena";
-  const todasConBase = GUARDIAS.every(x => counts[x.id] >= C[x.tipo].base);
-  return todasConBase ? "libre" : "bloqueada";
-}
-function cupoTexto(tipo) {
-  const { base, max } = cupos()[tipo];
-  return base === max ? `${base} persona${base === 1 ? "" : "s"}` : `${base}–${max} personas`;
+  return "libre";
 }
 
 // ─── 1. PANTALLA DE PARTICIPANTES ────────────────────────────────────────────
@@ -679,17 +801,9 @@ function renderSetup() {
   $("selCount").textContent = n;
   $("toggleAllBtn").textContent = n === STUDENTS.length ? "Desmarcar todos" : "Marcar todos";
   $("startBtn").disabled = n === 0;
-  if (n === 0) {
-    $("setupHint").textContent = "Marque al menos un seminarista.";
-  } else {
-    const semanaCupo = Math.max(1, Math.floor(n / 8));
-    const extra = Math.max(0, n - semanaCupo * 8);
-    const findeBase = semanaCupo + Math.floor(extra / 4);
-    const findeMax = findeBase + (extra % 4 > 0 ? 1 : 0);
-    const findeTxt = findeBase === findeMax ? `${findeBase}` : `${findeBase} a ${findeMax}`;
-    $("setupHint").textContent =
-      `${n} seminaristas · Guardias de semana: ${semanaCupo} c/u · Fines de semana (más pesadas): ${findeTxt} c/u.`;
-  }
+  $("setupHint").textContent = n === 0
+    ? "Marque al menos un seminarista."
+    : `Se repartirán ${n} seminaristas: guardias de semana (2×3 y 2×2 personas) y fines de semana (4×3 personas) — 22 plazas en total.`;
 }
 function toggleTodos() {
   if (checked.size === STUDENTS.length) checked.clear();
@@ -699,7 +813,7 @@ function toggleTodos() {
 function comenzarSorteo() {
   participants = [...checked];
   localStorage.setItem(LS_PART, JSON.stringify(participants));
-  irADondeToque();
+  irADondeToque(true);
 }
 
 // ─── 2. SORTEO ───────────────────────────────────────────────────────────────
@@ -715,66 +829,114 @@ function sortear(excluir) {
   current = source[Math.floor(Math.random() * source.length)];
 }
 
-function confeti() {
-  const host = $("drawCard");
-  for (let i = 0; i < 28; i++) {
-    const p = document.createElement("span");
-    p.className = "confetti-piece";
-    p.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
-    p.style.left = (50 + (Math.random() * 56 - 28)) + "%";
-    p.style.setProperty("--dx", (Math.random() * 220 - 110) + "px");
-    p.style.setProperty("--rot", (Math.random() * 840 - 420) + "deg");
-    p.style.animationDelay = (Math.random() * 0.12) + "s";
-    host.appendChild(p);
-    setTimeout(() => p.remove(), 1800);
-  }
-}
-
-// Ruleta con desaceleración: los nombres giran rápido y van frenando
-// hasta caer en el elegido, con brillo dorado y confeti.
+/* ── Animación de ruleta (slot machine) ── */
 function animarNombre() {
-  if (!current) return;
-  if (rollTimer) { clearTimeout(rollTimer); rollTimer = null; }
-  const el = $("drawName"), av = $("drawAvatar"), card = $("drawCard");
+  const reel = $("slotReel");
+  const av   = $("drawAvatar");
+  const card = $("drawCard");
+  if (!current || !reel || !av || !card) return;
+  if (rollTimer) { clearInterval(rollTimer); rollTimer = null; }
   const target = byId[current];
-  const pool = pendientes();
-  const names = (pool.length > 1 ? pool : (participants || pool)).map(id => byId[id].name);
-
+  if (!target) return;
   rolling = true;
-  card.classList.add("rolling");
-  el.classList.add("rolling");
-  el.classList.remove("settled");
-  av.classList.remove("landed");
+
+  // Reset avatar
   av.textContent = "?";
   av.style.background = "var(--outline)";
+  av.classList.remove("pulse");
+  card.classList.remove("shimmer");
 
-  let delay = 50, ticks = 0;
-  const TOTAL_TICKS = 16;
-  const step = () => {
-    el.textContent = names[Math.floor(Math.random() * names.length)];
-    ticks++;
-    if (ticks < TOTAL_TICKS) {
-      delay *= 1.12;
-      rollTimer = setTimeout(step, delay);
-    } else {
-      rollTimer = null;
-      card.classList.remove("rolling");
-      el.classList.remove("rolling");
-      el.classList.add("settled");
-      el.textContent = target.name;
+  // Build a shuffled deck of names for the reel
+  const names = participants.map(id => byId[id].name);
+  const TOTAL_ITEMS = 28;
+  const deck = [];
+  for (let i = 0; i < TOTAL_ITEMS; i++) {
+    deck.push(names[Math.floor(Math.random() * names.length)]);
+  }
+  deck.push(target.name); // final landing
+
+  // Build reel DOM (id="drawName" vive aquí, en el ítem final)
+  reel.innerHTML = "";
+  reel.style.transform = "translateY(0)";
+  reel.classList.add("spinning");
+  deck.forEach((n, idx) => {
+    const div = document.createElement("div");
+    const isLast = idx === deck.length - 1;
+    div.className = "slot-item" + (isLast ? " active" : " blur-item");
+    if (isLast) div.id = "drawName"; // restaura el id en el item final
+    div.textContent = n;
+    reel.appendChild(div);
+  });
+
+  const itemH  = 68;
+  const targetY = -(deck.length - 1) * itemH;
+  const TICK   = 60;
+  let elapsed  = 0;
+  const DURATION = 1600;
+
+  rollTimer = setInterval(() => {
+    elapsed += TICK;
+    const eased  = 1 - Math.pow(1 - Math.min(elapsed / DURATION, 1), 3);
+    reel.style.transform = `translateY(${targetY * eased}px)`;
+
+    if (elapsed >= DURATION) {
+      clearInterval(rollTimer); rollTimer = null;
+      reel.style.transform = `translateY(${targetY}px)`;
+      reel.classList.remove("spinning");
+
+      // Avatar reveal con pulse
       av.textContent = initials(target.name);
       av.style.background = avatarColor(target.id);
-      av.classList.add("landed");
+      void av.offsetWidth;
+      av.classList.add("pulse");
+
+      // Gold shimmer
+      void card.offsetWidth;
+      card.classList.add("shimmer");
+
+      spawnParticles(av);
       rolling = false;
-      confeti();
     }
-  };
-  step();
+  }, TICK);
+}
+
+function spawnParticles(anchor) {
+  const rect = anchor.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top  + rect.height / 2;
+  const colors = ["#8b6a3e","#c8a85a","#5a4530","#2e7d32","#d6c59f","#f3e1b9"];
+  const count = 22;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("div");
+    p.className = "particle";
+    const angle = (i / count) * 360;
+    const dist  = 50 + Math.random() * 80;
+    const tx = Math.cos(angle * Math.PI / 180) * dist + "px";
+    const ty = Math.sin(angle * Math.PI / 180) * dist + "px";
+    const size = 5 + Math.random() * 7;
+    const dur  = (0.8 + Math.random() * 0.6).toFixed(2) + "s";
+    Object.assign(p.style, {
+      left: cx + "px", top: cy + "px",
+      width: size + "px", height: size + "px",
+      background: colors[i % colors.length],
+      "--tx": tx, "--ty": ty, "--dur": dur,
+    });
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), parseFloat(dur) * 1000 + 100);
+  }
 }
 
 function sortearOtro() {
   if (rolling) return;
-  if (pendientes().length <= 1) { toast("Es el único que queda por asignar.", true); return; }
+  // Pool real: pendientes excluyendo al actual
+  const pool = pendientes().filter(id => id !== current);
+  if (pool.length === 0) {
+    toast("No hay otro seminarista disponible para sortear.", true);
+    return;
+  }
+  // Limpia cualquier animación anterior
+  if (rollTimer) { clearInterval(rollTimer); rollTimer = null; }
+  rolling = false;
   sortear(current);
   animarNombre();
 }
@@ -786,11 +948,10 @@ function renderDraw() {
   $("countTotal").textContent = total;
   $("progressFill").style.width = (total ? (done / total) * 100 : 0) + "%";
   $("undoBtn").classList.toggle("hidden", undoStack.length === 0);
-  $("cuposNote").innerHTML =
-    `<b>Semana:</b> ${cupoTexto("semana")} por guardia &nbsp;·&nbsp; <b>Fin de semana (más pesada):</b> ${cupoTexto("finde")}`;
 
   if (current && byId[current] && !rolling) {
-    $("drawName").textContent = byId[current].name;
+    // Reconstruye el reel con el nombre actual; id="drawName" queda en el item
+    $("slotReel").innerHTML = `<div class="slot-item active" id="drawName">${byId[current].name}</div>`;
     $("drawAvatar").textContent = initials(byId[current].name);
     $("drawAvatar").style.background = avatarColor(current);
   }
@@ -813,7 +974,7 @@ function renderDraw() {
 function cardGuardia(g, counts) {
   const c = counts[g.id];
   const estado = estadoGuardia(g.id, counts);
-  const { base, max } = cupos()[g.tipo];
+  const max = cupoParaGuardia(g.id);
   const members = selections
     .filter(s => s.guardia_id === g.id)
     .sort((a, b) => a.seminarista_nombre.localeCompare(b.seminarista_nombre));
@@ -821,10 +982,10 @@ function cardGuardia(g, counts) {
   const card = document.createElement("div");
   card.className = `gcard ${g.tipo}`;
 
-  const tipoLabel = g.tipo === "semana"
-    ? `<span class="type-chip"><span class="msym">wb_sunny</span>Guardia de semana</span>`
-    : `<span class="type-chip"><span class="msym">weekend</span>Fin de semana</span>`;
-  const cupoLabel = `<span class="cupo-chip"><span class="msym">group</span>${cupoTexto(g.tipo)}</span>`;
+  const esFinde = g.tipo === "finde";
+  const tipoLabel = esFinde
+    ? `<span class="type-chip"><span class="msym">weekend</span>Fin de semana · ${max} plazas</span>`
+    : `<span class="type-chip"><span class="msym">wb_sunny</span>Guardia de semana · ${max} plazas</span>`;
 
   const memberHtml = members.length
     ? members.map(m => `
@@ -835,19 +996,17 @@ function cardGuardia(g, counts) {
     : `<div class="empty"><span class="msym">person_add</span>Sin asignar todavía</div>`;
 
   const dots = Array.from({length: max}, (_, i) =>
-    `<span class="slot-dot${i >= base ? " bonus" : ""}${i < c ? " full" : ""}"></span>`).join("");
+    `<span class="slot-dot${i < c ? " full" : ""}"></span>`).join("");
 
   let action;
   if (estado === "llena") {
     action = `<button class="btn-take is-full" disabled><span class="msym">lock</span>Completa</button>`;
-  } else if (estado === "bloqueada") {
-    action = `<div class="locked-hint"><span class="msym">hourglass_top</span>El refuerzo se abre cuando todas tengan su cupo</div>`;
   } else {
     action = `<button class="btn-take" onclick="pedirAsignar('${g.id}')"><span class="msym">assignment_ind</span>Asignar aquí</button>`;
   }
 
   card.innerHTML = `
-    <div class="gcard-top">${tipoLabel}${cupoLabel}</div>
+    <div class="gcard-top">${tipoLabel}</div>
     <h3>${g.titulo}</h3>
     <div class="times">
       <div class="time-box">
@@ -868,10 +1027,35 @@ function cardGuardia(g, counts) {
 }
 
 function pedirAsignar(gid) {
-  if (rolling) return;
-  if (!current) { toast("No hay seminarista sorteado.", true); return; }
+  // Si el sorteo está girando, lo detenemos y procedemos igual
+  if (rolling || rollTimer) {
+    if (rollTimer) { clearInterval(rollTimer); rollTimer = null; }
+    rolling = false;
+    // Restaura el reel con el nombre final e id="drawName" intacto
+    if (current && byId[current]) {
+      const reel = $("slotReel");
+      reel.style.transform = "translateY(0)";
+      reel.innerHTML = `<div class="slot-item active" id="drawName">${byId[current].name}</div>`;
+      $("drawAvatar").textContent = initials(byId[current].name);
+      $("drawAvatar").style.background = avatarColor(current);
+    }
+  }
+  if (navLock) { toast("Espere un momento…", false); return; }
+  if (!current) { toast("No hay seminarista sorteado. Presione 'Comenzar el sorteo'.", true); return; }
+  if (!byId[current]) { toast("Error interno: seminarista no encontrado.", true); return; }
+
   const g = GUARDIAS.find(x => x.id === gid);
   const s = byId[current];
+  if (!g) { toast("Guardia no encontrada.", true); return; }
+
+  // Verificación rápida local antes de abrir el modal
+  const counts = countsPorGuardia();
+  if (estadoGuardia(gid, counts) !== "libre") {
+    toast("Esa guardia ya está completa.", true);
+    renderDraw();
+    return;
+  }
+
   abrirModal("Confirmar asignación",
     `<b>${s.name}</b> hará la guardia del <b>${g.titulo}</b><br>(entrada ${g.entradaDia} 3:00 PM · salida ${g.salidaDia} 9:00 AM). ¿Confirma, Padre?`,
     "Sí, asignar", () => asignar(gid));
@@ -879,32 +1063,53 @@ function pedirAsignar(gid) {
 
 async function asignar(gid) {
   cerrarModal();
+  // Detener animación en curso si existiera
+  if (rollTimer) { clearInterval(rollTimer); rollTimer = null; }
+  rolling = false;
+
   const quien = current;
+  if (!quien) { toast("No hay seminarista seleccionado.", true); return; }
+
   navLock = true;
   try {
     await refetch(true);
+
+    // Verificar que este seminarista no tenga ya guardia
     if (selections.some(s => s.seminarista_id === quien)) {
-      toast("Este seminarista ya tiene guardia.", true);
+      toast("Este seminarista ya tiene guardia asignada.", true);
       navLock = false;
       irADondeToque();
       return;
     }
+
+    // Verificar que la guardia aún tenga cupo
     if (estadoGuardia(gid, countsPorGuardia()) !== "libre") {
-      toast("Esa guardia ya no está disponible.", true);
+      toast("Esa guardia ya no tiene cupo disponible.", true);
+      navLock = false;
       renderDraw();
       return;
     }
+
     const { error } = await sb.from(TABLE).upsert(
       { seminarista_id: quien, seminarista_nombre: byId[quien].name, guardia_id: gid },
       { onConflict: "seminarista_id" }
     );
-    if (error) { console.error(error); toast("No se pudo guardar. Intente de nuevo.", true); return; }
+    if (error) {
+      console.error(error);
+      toast("No se pudo guardar. Intente de nuevo.", true);
+      navLock = false;
+      return;
+    }
+
     undoStack.push(quien);
     await refetch(true);
     const g = GUARDIAS.find(x => x.id === gid);
-    toast(`${shortName(byId[quien].name)} → ${g.titulo}`);
-    if (pendientes().length) {
+    toast(`✓ ${shortName(byId[quien].name)} → ${g ? g.titulo : gid}`);
+
+    const pend = pendientes();
+    if (pend.length) {
       sortear();
+      if (!current) { current = pend[0]; }  // sanity check
       renderDraw();
       animarNombre();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -912,6 +1117,10 @@ async function asignar(gid) {
       current = null;
       mostrarFinal();
     }
+  } catch(e) {
+    console.error(e);
+    toast("Error inesperado. Recargue la página.", true);
+    navLock = false;
   } finally {
     navLock = false;
   }
@@ -942,7 +1151,7 @@ function mostrarFinal() {
   const completo = participants && pend === 0;
   $("finalIcon").textContent = completo ? "verified" : "pending";
   $("finalSub").innerHTML = completo
-    ? `Los ${participants.length} seminaristas tienen su guardia asignada. Lunes libres · Semana: martes 3:00 PM a viernes 9:00 AM · Fin de semana: viernes 3:00 PM a lunes 9:00 AM.`
+    ? `Todos los seminaristas tienen su guardia asignada. Lunes libres · Semana: martes 3:00 PM a viernes 9:00 AM · Fin de semana: viernes 3:00 PM a lunes 9:00 AM.`
     : participants
       ? `<span class="warn">Sorteo en curso:</span> faltan ${pend} seminaristas por asignar.`
       : `Distribución registrada hasta ahora. Lunes libres · Entrada 3:00 PM · Salida 9:00 AM.`;
@@ -965,8 +1174,11 @@ function mostrarFinal() {
       ${members.length ? members.map(m => `
         <div class="sched-member">
           <span class="avatar" style="background:${avatarColor(m.seminarista_id)}">${initials(m.seminarista_nombre)}</span>
-          <span>${m.seminarista_nombre}</span>
-          <button class="rm" title="Quitar de esta guardia" onclick="pedirQuitar('${m.seminarista_id}')"><span class="msym">close</span></button>
+          <span class="member-name">${m.seminarista_nombre}</span>
+          <div class="member-acts">
+            <button class="mv" title="Mover a otra guardia" onclick="pedirMover('${m.seminarista_id}')"><span class="msym">swap_horiz</span></button>
+            <button class="rm" title="Quitar de esta guardia" onclick="pedirQuitar('${m.seminarista_id}')"><span class="msym">close</span></button>
+          </div>
         </div>`).join("") : '<div class="none">Sin asignaciones</div>'}
     `;
     grid.appendChild(card);
@@ -987,10 +1199,8 @@ function pedirQuitar(sid) {
         if (error) { console.error(error); toast("No se pudo quitar.", true); return; }
         undoStack = undoStack.filter(id => id !== sid);
         await refetch(true);
-        if (participants && !participants.includes(sid)) {
-          participants.push(sid);
-          localStorage.setItem(LS_PART, JSON.stringify(participants));
-        }
+        if (participants && !participants.includes(sid)) participants.push(sid);
+        if (participants) localStorage.setItem(LS_PART, JSON.stringify(participants));
         current = sid;
         showScreen("drawScreen");
         renderDraw();
@@ -999,6 +1209,171 @@ function pedirQuitar(sid) {
         navLock = false;
       }
     }, true);
+}
+
+// ─── MOVER / INTERCAMBIAR ────────────────────────────────────────────────────
+function pedirMover(sid) {
+  const row = selections.find(s => s.seminarista_id === sid);
+  if (!row) return;
+
+  // Header del modal
+  $("moveAvatar").textContent = initials(row.seminarista_nombre);
+  $("moveAvatar").style.background = avatarColor(row.seminarista_id);
+  $("moveName").textContent = row.seminarista_nombre;
+  const gActual = GUARDIAS.find(x => x.id === row.guardia_id);
+  $("moveFrom").textContent = `Actualmente en: ${gActual ? gActual.titulo : ""}`;
+
+  // Ocultar sub-panel
+  $("swapPanel").classList.remove("visible");
+  $("swapPersonList").innerHTML = "";
+
+  renderMoveList(sid, null);
+  $("moveModal").classList.remove("hidden");
+}
+
+function renderMoveList(sid, swapTargetGid) {
+  const row    = selections.find(s => s.seminarista_id === sid);
+  const counts = countsPorGuardia();
+  const list   = $("moveGuardList");
+  list.innerHTML = "";
+
+  GUARDIAS.forEach(g => {
+    const max       = cupoParaGuardia(g.id);
+    const cnt       = counts[g.id];
+    const isCurrent = g.id === row.guardia_id;
+    const isFull    = !isCurrent && cnt >= max;
+    const isSwapTarget = g.id === swapTargetGid;
+    const esFinde   = g.tipo === "finde";
+
+    const opt = document.createElement("div");
+    let cls = `move-option${esFinde ? " finde-opt" : ""}`;
+    if (isCurrent)    cls += " current-guard";
+    if (isSwapTarget) cls += " swap-active";
+    opt.className = cls;
+    opt.style.cssText = isSwapTarget
+      ? "border-color:#e65100;background:#fff3e0;"
+      : "";
+
+    const badgeClass = isCurrent ? "aqui" : isFull ? "intercambiar" : "libre";
+    const badgeText  = isCurrent ? "Aquí está" : isFull ? "Intercambiar ⇄" : "Disponible";
+
+    opt.innerHTML = `
+      <div class="mo-icon"><span class="msym">${esFinde ? "weekend" : "wb_sunny"}</span></div>
+      <div class="mo-info">
+        <b>${g.titulo}</b>
+        <span>${cnt}/${max} asignados · ${esFinde ? "Fin de semana" : "Guardia de semana"}</span>
+      </div>
+      <span class="mo-badge ${badgeClass}">${badgeText}</span>`;
+
+    if (!isCurrent && !isFull) {
+      // Mover directamente
+      opt.onclick = () => moverA(sid, g.id);
+    } else if (!isCurrent && isFull) {
+      // Mostrar sub-panel para intercambio
+      opt.onclick = () => mostrarSwapPanel(sid, row.guardia_id, g.id);
+    }
+    list.appendChild(opt);
+  });
+}
+
+function mostrarSwapPanel(sid, gidOrigen, gidDestino) {
+  // Resalta la guardia seleccionada en la lista
+  const row    = selections.find(s => s.seminarista_id === sid);
+  renderMoveList(sid, gidDestino);
+
+  const panel   = $("swapPanel");
+  const listEl  = $("swapPersonList");
+  listEl.innerHTML = "";
+
+  const miembros = selections.filter(s => s.guardia_id === gidDestino);
+  const gDest    = GUARDIAS.find(x => x.id === gidDestino);
+
+  miembros.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "swap-person";
+    div.innerHTML = `
+      <span class="avatar" style="background:${avatarColor(m.seminarista_id)}">${initials(m.seminarista_nombre)}</span>
+      <span class="sp-name">${m.seminarista_nombre}</span>
+      <span class="sp-badge">Intercambiar</span>`;
+    div.onclick = () => confirmarIntercambio(
+      sid, row.seminarista_nombre, gidOrigen,
+      m.seminarista_id, m.seminarista_nombre, gidDestino
+    );
+    listEl.appendChild(div);
+  });
+
+  panel.classList.add("visible");
+}
+
+function confirmarIntercambio(sidA, nombreA, gidA, sidB, nombreB, gidB) {
+  const gA = GUARDIAS.find(x => x.id === gidA);
+  const gB = GUARDIAS.find(x => x.id === gidB);
+  cerrarMoveModal();
+  abrirModal(
+    "Confirmar intercambio",
+    `<b>${nombreA}</b> irá a <b>${gB ? gB.titulo : gidB}</b><br>
+     y <b>${nombreB}</b> irá a <b>${gA ? gA.titulo : gidA}</b>.<br><br>
+     ¿Confirma el intercambio, Padre?`,
+    "Sí, intercambiar",
+    () => intercambiarCon(sidA, gidA, sidB, gidB)
+  );
+}
+
+async function moverA(sid, nuevaGid) {
+  const row = selections.find(s => s.seminarista_id === sid);
+  if (!row) return;
+  cerrarMoveModal();
+  navLock = true;
+  try {
+    await refetch(true);
+    const counts = countsPorGuardia();
+    if (estadoGuardia(nuevaGid, counts) === "llena") {
+      toast("Esa guardia ya se llenó.", true);
+      navLock = false;
+      return;
+    }
+    const { error } = await sb.from(TABLE)
+      .update({ guardia_id: nuevaGid })
+      .eq("seminarista_id", sid);
+    if (error) { console.error(error); toast("No se pudo mover.", true); navLock = false; return; }
+    await refetch(true);
+    const gNueva = GUARDIAS.find(x => x.id === nuevaGid);
+    toast(`✓ ${shortName(row.seminarista_nombre)} → ${gNueva ? gNueva.titulo : nuevaGid}`);
+    mostrarFinal();
+  } finally {
+    navLock = false;
+  }
+}
+
+async function intercambiarCon(sidA, gidA, sidB, gidB) {
+  cerrarModal();
+  navLock = true;
+  try {
+    // Mover A → gidB  y  B → gidA en paralelo
+    const [r1, r2] = await Promise.all([
+      sb.from(TABLE).update({ guardia_id: gidB }).eq("seminarista_id", sidA),
+      sb.from(TABLE).update({ guardia_id: gidA }).eq("seminarista_id", sidB),
+    ]);
+    if (r1.error || r2.error) {
+      console.error(r1.error || r2.error);
+      toast("No se pudo intercambiar. Intente de nuevo.", true);
+      navLock = false;
+      return;
+    }
+    await refetch(true);
+    const rowA = byId[sidA] ? byId[sidA].name : sidA;
+    const rowB = byId[sidB] ? byId[sidB].name : sidB;
+    const gA   = GUARDIAS.find(x => x.id === gidA);
+    const gB   = GUARDIAS.find(x => x.id === gidB);
+    toast(`⇄ ${shortName(rowA)} ⇔ ${shortName(rowB)} intercambiados`);
+    mostrarFinal();
+  } finally {
+    navLock = false;
+  }
+}
+
+function cerrarMoveModal() {
+  $("moveModal").classList.add("hidden");
 }
 
 function volverAlSorteo() {
@@ -1044,8 +1419,7 @@ function descargarPDF() {
       </div>
     </div>
     <div class="ps-meta">
-      Lunes libres · Guardia de semana: martes 3:00 PM a viernes 9:00 AM ·
-      Guardia de fin de semana: viernes 3:00 PM a lunes 9:00 AM.
+      Lunes libres · Guardia de semana: martes 3:00 PM a viernes 9:00 AM · Guardia de fin de semana: viernes 3:00 PM a lunes 9:00 AM.
     </div>
     <div class="ps-grid">
       ${GUARDIAS.map(g => {
@@ -1101,6 +1475,7 @@ async function refetch(silent = false) {
   $("setupNotice").classList.add("hidden");
   selections = data || [];
   if (navLock) return; // quien inició la acción se encarga de re-renderizar
+  // re-render de la pantalla visible
   if (!$("drawScreen").classList.contains("hidden")) {
     if (current && selections.some(s => s.seminarista_id === current)) irADondeToque();
     else renderDraw();
@@ -1144,7 +1519,7 @@ function mostrarSetupDB() {
 }
 
 // ─── NAVEGACIÓN SEGÚN ESTADO ─────────────────────────────────────────────────
-function irADondeToque() {
+function irADondeToque(inicio = false) {
   if (!dbReady) return;
   if (!participants) {
     if (selections.length) { mostrarFinal(); }       // visitante: ve el esquema
@@ -1152,7 +1527,7 @@ function irADondeToque() {
     return;
   }
   if (pendientes().length === 0) { current = null; mostrarFinal(); return; }
-  if (!current || !pendientes().includes(current)) {
+  if (!current || selections.some(s => s.seminarista_id === current) || !pendientes().includes(current)) {
     sortear();
     showScreen("drawScreen");
     renderDraw();
@@ -1161,6 +1536,7 @@ function irADondeToque() {
     showScreen("drawScreen");
     renderDraw();
   }
+  if (inicio) window.scrollTo({ top: 0 });
 }
 
 // ─── TIEMPO REAL ─────────────────────────────────────────────────────────────
@@ -1177,12 +1553,12 @@ function subscribeRealtime() {
   const saved = localStorage.getItem(LS_PART);
   if (saved) {
     try { participants = JSON.parse(saved); } catch { participants = null; }
-    if (!Array.isArray(participants) || !participants.length || !participants.every(id => byId[id])) participants = null;
+    if (!Array.isArray(participants) || !participants.every(id => byId[id])) participants = null;
   }
   checked = participants ? new Set(participants) : new Set(STUDENTS.map(s => s.id));
   await refetch();
   $("loadingVeil").classList.add("hidden");
-  if (dbReady) irADondeToque();
+  if (dbReady) irADondeToque(true);
   subscribeRealtime();
 })();
 </script>
