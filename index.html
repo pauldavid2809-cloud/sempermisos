@@ -899,7 +899,15 @@ function spawnParticles(anchor) {
 
 function sortearOtro() {
   if (rolling) return;
-  if (pendientes().length <= 1) { toast("Es el único que queda por asignar.", true); return; }
+  // Pool real: pendientes excluyendo al actual
+  const pool = pendientes().filter(id => id !== current);
+  if (pool.length === 0) {
+    toast("No hay otro seminarista disponible para sortear.", true);
+    return;
+  }
+  // Limpia cualquier animación anterior
+  if (rollTimer) { clearInterval(rollTimer); rollTimer = null; }
+  rolling = false;
   sortear(current);
   animarNombre();
 }
