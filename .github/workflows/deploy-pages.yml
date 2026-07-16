@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - claude/seminary-guard-scheduler-nrm1yz
   workflow_dispatch:
 
 permissions:

@@ -691,6 +691,14 @@ const STUDENTS = [
   {id:"s20", name:"Ricardo Márquez"},
   {id:"s21", name:"Jesús Tudares"},
   {id:"s22", name:"Paul Urdaneta"},
+  {id:"s23", name:"Ángel Báez"},
+  {id:"s24", name:"Edwin Bermúdez"},
+  {id:"s25", name:"Isaac Pérez"},
+  {id:"s26", name:"José Bermúdez"},
+  {id:"s27", name:"Lisandro Castellano"},
+  {id:"s28", name:"Miguel Márquez"},
+  {id:"s29", name:"Robert García"},
+  {id:"s30", name:"Samuel Pérez"},
 ];
 const byId = Object.fromEntries(STUDENTS.map(s => [s.id, s]));
 
@@ -757,11 +765,11 @@ function showScreen(name) {
 }
 
 // ─── CUPOS ───────────────────────────────────────────────────────────────────
-// Fines de semana (vie→lun): 3 personas — las más pesadas.
-// Guardias de semana: g1 y g5 (semanas 1 y 3) tienen 3 — para llegar a 22 en total.
-// g3 y g7 (semanas 2 y 4) tienen 2.
-// Total: 3+3+3+3+2+3+2+3 = 22 ✓
-const CUPOS = { g1:3, g2:3, g3:2, g4:3, g5:3, g6:3, g7:2, g8:3 };
+// Reparto equitativo de 30 seminaristas: seis guardias de 4 y dos de 3.
+// Fines de semana (vie→lun, las más pesadas): 4 personas cada uno.
+// Guardias de semana: g1 y g5 con 4; g3 y g7 con 3.
+// Total: 4+4+3+4+4+4+3+4 = 30 ✓
+const CUPOS = { g1:4, g2:4, g3:3, g4:4, g5:4, g6:4, g7:3, g8:4 };
 function cupoParaGuardia(gid) {
   return CUPOS[gid] ?? 2;
 }
@@ -803,7 +811,7 @@ function renderSetup() {
   $("startBtn").disabled = n === 0;
   $("setupHint").textContent = n === 0
     ? "Marque al menos un seminarista."
-    : `Se repartirán ${n} seminaristas: guardias de semana (2×3 y 2×2 personas) y fines de semana (4×3 personas) — 22 plazas en total.`;
+    : `Se repartirán ${n} seminaristas: guardias de semana (2×4 y 2×3 personas) y fines de semana (4×4 personas) — 30 plazas en total.`;
 }
 function toggleTodos() {
   if (checked.size === STUDENTS.length) checked.clear();
