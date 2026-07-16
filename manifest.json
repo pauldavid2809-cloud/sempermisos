@@ -1,12 +1,19 @@
 {
-  "background_color": "#ffffff",
+  "background_color": "#fbf9f5",
   "dir": "ltr",
   "display": "standalone",
-  "name": "Permisos SMASTA",
+  "name": "Guardias SMASTA",
   "orientation": "any",
   "scope": "/",
-  "short_name": "Permisos SMASTA",
-  "start_url": "/https://exquisite-mandazi-46a738.netlify.app/",
-  "theme_color": "#ffffff",
-  "id": "Permismats"
+  "short_name": "Guardias",
+  "start_url": "/",
+  "theme_color": "#fbf9f5",
+  "id": "guardias-smasta",
+  "icons": [
+    {
+      "src": "Logo Seminario Borde (1).png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }

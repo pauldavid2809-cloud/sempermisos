@@ -1,536 +1,405 @@
 <!DOCTYPE html>
-
-<html class="light" lang="es"><head>
+<html lang="es">
+<head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Sistema de Solicitudes — Seminario Mayor Santo Tomás de Aquino</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Guardias de Agosto — Seminario Mayor Santo Tomás de Aquino</title>
+<link rel="icon" href="Logo Seminario Borde (1).png" type="image/png"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&amp;family=Source+Sans+3:wght@300;400;500;600;700&amp;family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script id="tailwind-config">
-  tailwind.config = {
-    darkMode: "class",
-    theme: {
-      extend: {
-        "colors": {
-                "error": "#ba1a1a",
-                "on-secondary-fixed-variant": "#5a4400",
-                "tertiary-fixed": "#a3f69c",
-                "on-tertiary": "#ffffff",
-                "surface-bright": "#fbf9f5",
-                "on-error": "#ffffff",
-                "outline": "#7d766b",
-                "surface-dim": "#dbdad6",
-                "outline-variant": "#cec5b8",
-                "liturgical-green": "#2e7d32",
-                "primary-container": "#231a03",
-                "tertiary-fixed-dim": "#88d982",
-                "inverse-primary": "#d6c59f",
-                "on-tertiary-fixed-variant": "#005312",
-                "primary": "#1a1200",
-                "surface-tint": "#6a5d3e",
-                "primary-fixed": "#f3e1b9",
-                "primary-fixed-dim": "#d6c59f",
-                "surface": "#fbf9f5",
-                "paper-dark": "#d5c9b5",
-                "on-primary-fixed-variant": "#514629",
-                "on-error-container": "#93000a",
-                "tertiary": "#000000",
-                "inverse-on-surface": "#f2f0ed",
-                "wood-noble": "#5a4530",
-                "surface-container": "#efeeea",
-                "on-secondary": "#ffffff",
-                "error-container": "#ffdad6",
-                "on-primary": "#ffffff",
-                "on-secondary-fixed": "#251a00",
-                "inverse-surface": "#30312e",
-                "tertiary-container": "#002204",
-                "on-secondary-container": "#795f18",
-                "surface-container-high": "#eae8e4",
-                "secondary-fixed-dim": "#e5c372",
-                "surface-container-lowest": "#ffffff",
-                "on-tertiary-container": "#469446",
-                "on-primary-container": "#918261",
-                "altar-gold": "#8b6a3e",
-                "secondary-container": "#ffdc89",
-                "secondary": "#745b13",
-                "on-background": "#1b1c1a",
-                "surface-container-low": "#f5f3ef",
-                "on-tertiary-fixed": "#002204",
-                "ink-deep": "#2c1f0e",
-                "on-surface-variant": "#4b463c",
-                "surface-container-highest": "#e4e2de",
-                "surface-variant": "#e4e2de",
-                "on-primary-fixed": "#231a03",
-                "secondary-fixed": "#ffdf96",
-                "background": "#fbf9f5",
-                "on-surface": "#1b1c1a"
-        },
-        "borderRadius": {
-                "DEFAULT": "0.25rem",
-                "lg": "0.5rem",
-                "xl": "0.75rem",
-                "full": "9999px"
-        },
-        "fontFamily": {
-                "headline-lg": ["Libre Caslon Text", "serif"],
-                "headline-md": ["Libre Caslon Text", "serif"],
-                "headline-sm": ["Libre Caslon Text", "serif"],
-                "title-md": ["Libre Caslon Text", "serif"],
-                "body-md": ["'Source Sans 3'", "sans-serif"],
-                "label-caps": ["'Source Sans 3'", "sans-serif"],
-                "tagline": ["'Source Sans 3'", "sans-serif"]
-        }
-      }
-    }
-  }
-</script>
 <style>
+  :root {
+    --surface: #fbf9f5;
+    --surface-low: #f5f3ef;
+    --surface-container: #efeeea;
+    --surface-high: #eae8e4;
+    --on-surface: #1b1c1a;
+    --on-surface-variant: #4b463c;
+    --outline: #7d766b;
+    --outline-variant: #cec5b8;
+    --altar-gold: #8b6a3e;
+    --wood-noble: #5a4530;
+    --ink-deep: #2c1f0e;
+    --liturgical-green: #2e7d32;
+    --green-bg: #e8f5e9;
+    --gold-bg: #f3e1b9;
+    --error: #ba1a1a;
+    --error-bg: #ffdad6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     font-family: 'Source Sans 3', sans-serif;
-    background-color: theme('colors.surface');
-    color: theme('colors.on-surface');
+    background-color: var(--surface);
+    color: var(--on-surface);
+    min-height: 100vh;
+    line-height: 1.5;
   }
-  .font-serif { font-family: 'Libre Caslon Text', serif; }
-  .golden-border { border: 1px solid theme('colors.altar-gold'); }
-  .official-shadow { box-shadow: 0 4px 20px rgba(26, 18, 0, 0.08); }
-  
-  .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid theme('colors.outline-variant');
-    border-top-color: theme('colors.altar-gold');
-    border-radius: 50%;
+  .serif { font-family: 'Libre Caslon Text', serif; }
+  .msym {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal; font-style: normal;
+    display: inline-block; line-height: 1;
+    letter-spacing: normal; text-transform: none;
+    white-space: nowrap; word-wrap: normal; direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    user-select: none;
+  }
+  button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  input { font: inherit; }
+
+  .paper-texture {
+    background-image: radial-gradient(circle at 50% 0%, rgba(139,106,62,0.06), transparent 60%);
+  }
+
+  /* ── Header ── */
+  header.app {
+    background: var(--surface);
+    border-bottom: 1px solid var(--outline-variant);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .header-inner {
+    max-width: 1060px; margin: 0 auto;
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+  }
+  .header-inner img { width: 44px; height: 44px; object-fit: contain; }
+  .header-title { font-size: 17px; font-weight: 700; letter-spacing: .2px; }
+  .header-sub { font-size: 11.5px; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 1.2px; }
+  .user-chip {
+    margin-left: auto; display: flex; align-items: center; gap: 8px;
+    background: var(--surface-low); border: 1px solid var(--outline-variant);
+    border-radius: 999px; padding: 4px 12px 4px 4px;
+    max-width: 46vw;
+  }
+  .user-chip:hover { background: var(--surface-high); }
+  .user-chip .avatar { flex: none; }
+  .user-chip span.name {
+    font-size: 13px; font-weight: 600; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  }
+  .user-chip small { font-size: 11px; color: var(--altar-gold); font-weight: 600; flex: none; }
+
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #fff;
+    background: var(--altar-gold);
+  }
+
+  main { max-width: 1060px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  /* ── Hero ── */
+  .hero { text-align: center; padding: 18px 8px 6px; }
+  .hero h1 { font-family: 'Libre Caslon Text', serif; font-size: clamp(26px, 5vw, 38px); color: var(--ink-deep); }
+  .hero .rule {
+    display: flex; align-items: center; gap: 12px; justify-content: center;
+    color: var(--altar-gold); margin: 10px 0 6px;
+  }
+  .hero .rule::before, .hero .rule::after {
+    content: ""; height: 1px; width: 70px; background: var(--altar-gold); opacity: .5;
+  }
+  .hero p.tag { color: var(--on-surface-variant); font-size: 14.5px; max-width: 560px; margin: 0 auto; }
+
+  /* ── Progress ── */
+  .progress-card {
+    margin: 20px auto 8px; max-width: 620px;
+    background: var(--surface-low); border: 1px solid var(--outline-variant);
+    border-radius: 12px; padding: 14px 18px;
+  }
+  .progress-card .row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; }
+  .progress-card .row b { font-size: 15px; color: var(--ink-deep); }
+  .progress-bar { height: 6px; border-radius: 999px; background: var(--surface-high); margin-top: 8px; overflow: hidden; }
+  .progress-bar > div { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--altar-gold), var(--wood-noble)); transition: width .5s ease; width: 0%; }
+  .mi-guardia-line { margin-top: 10px; font-size: 13.5px; color: var(--on-surface-variant); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .mi-guardia-line .msym { font-size: 18px; color: var(--liturgical-green); }
+  .mi-guardia-line b { color: var(--liturgical-green); }
+
+  /* ── Week sections ── */
+  .week-title {
+    display: flex; align-items: center; gap: 10px;
+    margin: 30px 0 12px;
+    font-family: 'Libre Caslon Text', serif; font-size: 18px; color: var(--wood-noble);
+  }
+  .week-title::after { content: ""; flex: 1; height: 1px; background: var(--outline-variant); }
+  .week-title .num {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 11px; letter-spacing: 1.5px; font-weight: 700; text-transform: uppercase;
+    color: var(--altar-gold); border: 1px solid var(--altar-gold);
+    border-radius: 999px; padding: 2px 10px;
+  }
+
+  .cards-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 720px) { .cards-grid { grid-template-columns: 1fr 1fr; } }
+
+  /* ── Guard card ── */
+  .gcard {
+    background: #fff; border: 1px solid var(--outline-variant);
+    border-radius: 14px; padding: 18px 18px 16px;
+    box-shadow: 0 3px 14px rgba(26,18,0,0.05);
+    display: flex; flex-direction: column; gap: 12px;
+    transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+    position: relative; overflow: hidden;
+  }
+  .gcard::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: var(--altar-gold);
+  }
+  .gcard.finde::before { background: var(--wood-noble); }
+  .gcard.mine { border-color: var(--liturgical-green); box-shadow: 0 4px 18px rgba(46,125,50,0.16); }
+  .gcard.mine::before { background: var(--liturgical-green); }
+
+  .gcard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .type-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--altar-gold); background: var(--gold-bg);
+    padding: 4px 10px; border-radius: 999px;
+  }
+  .gcard.finde .type-chip { color: #fff; background: var(--wood-noble); }
+  .type-chip .msym { font-size: 15px; }
+  .mine-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 700; color: var(--liturgical-green);
+    background: var(--green-bg); padding: 4px 10px; border-radius: 999px;
+  }
+  .mine-chip .msym { font-size: 15px; font-variation-settings: 'FILL' 1; }
+
+  .gcard h3 { font-family: 'Libre Caslon Text', serif; font-size: 21px; color: var(--ink-deep); font-weight: 700; }
+
+  .times { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .time-box {
+    background: var(--surface-low); border-radius: 10px; padding: 8px 12px;
+    font-size: 13px;
+  }
+  .time-box .lbl {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--on-surface-variant); margin-bottom: 2px;
+  }
+  .time-box .lbl .msym { font-size: 14px; color: var(--altar-gold); }
+  .time-box b { font-size: 13.5px; color: var(--on-surface); display: block; }
+  .time-box span { color: var(--on-surface-variant); font-size: 12.5px; }
+
+  /* members */
+  .members { min-height: 34px; display: flex; flex-direction: column; gap: 6px; }
+  .member-row { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+  .member-row .avatar { width: 26px; height: 26px; font-size: 10.5px; }
+  .member-row.me b { color: var(--liturgical-green); }
+  .members .empty { color: var(--outline); font-size: 13px; font-style: italic; display: flex; align-items: center; gap: 6px; }
+  .members .empty .msym { font-size: 16px; }
+
+  .gcard-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 2px; }
+  .slots { display: flex; gap: 5px; align-items: center; }
+  .slot-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--outline-variant); background: transparent; }
+  .slot-dot.full { background: var(--altar-gold); border-color: var(--altar-gold); }
+  .slot-dot.bonus { border-style: dashed; }
+  .slot-dot.bonus.full { background: var(--wood-noble); border-color: var(--wood-noble); border-style: solid; }
+  .slots small { font-size: 11px; color: var(--on-surface-variant); margin-left: 4px; }
+
+  .btn-take {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--ink-deep); color: #fff;
+    font-size: 13.5px; font-weight: 600;
+    padding: 9px 16px; border-radius: 999px;
+    transition: background .15s ease, opacity .15s ease;
+  }
+  .btn-take .msym { font-size: 17px; }
+  .btn-take:hover { background: var(--wood-noble); }
+  .btn-take:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-take.is-mine { background: var(--green-bg); color: var(--liturgical-green); cursor: default; }
+  .btn-take.is-full { background: var(--surface-high); color: var(--on-surface-variant); cursor: not-allowed; }
+  .btn-take.is-locked { background: var(--surface-high); color: var(--on-surface-variant); cursor: not-allowed; }
+  .btn-leave {
+    font-size: 12px; color: var(--error); font-weight: 600;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .locked-hint { font-size: 11.5px; color: var(--on-surface-variant); display: flex; gap: 5px; align-items: center; }
+  .locked-hint .msym { font-size: 14px; }
+
+  /* ── Name picker screen ── */
+  .picker-wrap { max-width: 560px; margin: 0 auto; padding: 34px 16px 60px; }
+  .picker-logo { display: block; width: 96px; height: 96px; object-fit: contain; margin: 0 auto 14px; }
+  .picker-wrap h1 { font-family: 'Libre Caslon Text', serif; text-align: center; font-size: clamp(24px, 6vw, 32px); color: var(--ink-deep); }
+  .picker-wrap .sub { text-align: center; color: var(--on-surface-variant); margin: 8px 0 4px; font-size: 14.5px; }
+  .picker-wrap .sub2 {
+    text-align: center; font-size: 11.5px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--altar-gold); font-weight: 700; margin-bottom: 24px;
+  }
+  .search-box {
+    display: flex; align-items: center; gap: 8px;
+    background: #fff; border: 1px solid var(--outline-variant); border-radius: 12px;
+    padding: 10px 14px; margin-bottom: 14px;
+  }
+  .search-box .msym { color: var(--altar-gold); font-size: 20px; }
+  .search-box input { border: none; outline: none; flex: 1; background: transparent; font-size: 15px; }
+  .names-list {
+    background: #fff; border: 1px solid var(--outline-variant); border-radius: 14px;
+    overflow: hidden; max-height: 54vh; overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(26,18,0,0.06);
+  }
+  .name-item {
+    width: 100%; display: flex; align-items: center; gap: 12px; text-align: left;
+    padding: 12px 16px; border-bottom: 1px solid var(--surface-container);
+    font-size: 15px; transition: background .12s ease;
+  }
+  .name-item:last-child { border-bottom: none; }
+  .name-item:hover { background: var(--surface-low); }
+  .name-item .msym { margin-left: auto; color: var(--outline-variant); font-size: 20px; }
+  .name-item small { display: block; font-size: 12px; color: var(--liturgical-green); font-weight: 600; }
+
+  /* ── Modal ── */
+  .modal-back {
+    position: fixed; inset: 0; background: rgba(28,20,5,0.45); z-index: 50;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal {
+    background: var(--surface); border-radius: 16px; max-width: 420px; width: 100%;
+    padding: 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    border-top: 4px solid var(--altar-gold);
+  }
+  .modal h3 { font-family: 'Libre Caslon Text', serif; font-size: 19px; color: var(--ink-deep); margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: var(--on-surface-variant); margin-bottom: 20px; }
+  .modal p b { color: var(--on-surface); }
+  .modal .acts { display: flex; gap: 10px; justify-content: flex-end; }
+  .btn-ghost { padding: 9px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--on-surface-variant); }
+  .btn-ghost:hover { background: var(--surface-high); }
+  .btn-solid { padding: 9px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; background: var(--ink-deep); color: #fff; }
+  .btn-solid:hover { background: var(--wood-noble); }
+  .btn-solid.danger { background: var(--error); }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink-deep); color: #fff; font-size: 14px;
+    padding: 11px 20px; border-radius: 999px; z-index: 60;
+    display: flex; align-items: center; gap: 8px;
+    opacity: 0; pointer-events: none; transition: opacity .25s ease, transform .25s ease;
+    max-width: 92vw; text-align: center;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.err { background: var(--error); }
+  #toast .msym { font-size: 18px; flex: none; }
+
+  /* ── Setup / offline notice ── */
+  .setup-card {
+    max-width: 720px; margin: 30px auto; background: #fff;
+    border: 1px solid var(--outline-variant); border-left: 4px solid var(--error);
+    border-radius: 12px; padding: 22px;
+  }
+  .setup-card h3 { font-family: 'Libre Caslon Text', serif; margin-bottom: 8px; color: var(--ink-deep); }
+  .setup-card p { font-size: 14px; color: var(--on-surface-variant); margin-bottom: 12px; }
+  .setup-card pre {
+    background: var(--surface-low); border: 1px solid var(--outline-variant);
+    border-radius: 8px; padding: 14px; font-size: 12px; overflow-x: auto;
+    line-height: 1.6; margin-bottom: 12px;
+  }
+
+  .loading-veil {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    padding: 70px 0; color: var(--on-surface-variant); font-size: 14px;
+  }
+  .spinner {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 3px solid var(--outline-variant); border-top-color: var(--altar-gold);
     animation: spin 1s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .type-pill.selected {
-    background-color: theme('colors.primary');
-    color: theme('colors.on-primary');
-    border-color: theme('colors.primary');
+  footer.app {
+    text-align: center; padding: 26px 16px 40px;
+    color: var(--outline); font-size: 12px; letter-spacing: .4px;
   }
-
-  /* Custom scrollbar for academic feel */
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: theme('colors.surface-container-low'); }
-  ::-webkit-scrollbar-thumb { background: theme('colors.altar-gold'); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: theme('colors.wood-noble'); }
-
-  .doc-seal {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    opacity: 0.05;
-    pointer-events: none;
-  }
-
-  /* Notification system */
-  .notif-badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    min-width: 18px;
-    height: 18px;
-    background: #ba1a1a;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: 9999px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
-    animation: badgePulse 2s ease-in-out infinite;
-    box-shadow: 0 2px 8px rgba(186, 26, 26, 0.4);
-  }
-  @keyframes badgePulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-  }
-  .notif-dropdown {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    width: 340px;
-    max-height: 420px;
-    overflow-y: auto;
-    background: #fff;
-    border: 1px solid #cec5b8;
-    border-radius: 0.75rem;
-    box-shadow: 0 8px 40px rgba(44,31,14,.15);
-    z-index: 100;
-    opacity: 0;
-    transform: translateY(-8px);
-    pointer-events: none;
-    transition: opacity 0.2s, transform 0.2s;
-  }
-  .notif-dropdown.open {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
-  .notif-toast {
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    z-index: 9999;
-    background: #fff;
-    border: 1px solid #cec5b8;
-    border-radius: 0.75rem;
-    box-shadow: 0 8px 40px rgba(44,31,14,.18);
-    padding: 16px 20px;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    max-width: 380px;
-    animation: toastIn 0.4s ease-out, toastOut 0.4s ease-in 4.6s forwards;
-  }
-  @keyframes toastIn {
-    from { opacity: 0; transform: translateX(100px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  @keyframes toastOut {
-    from { opacity: 1; transform: translateX(0); }
-    to { opacity: 0; transform: translateX(100px); }
-  }
-  .bell-ring {
-    animation: bellRing 0.6s ease-in-out;
-  }
-  @keyframes bellRing {
-    0% { transform: rotate(0); }
-    15% { transform: rotate(14deg); }
-    30% { transform: rotate(-12deg); }
-    45% { transform: rotate(10deg); }
-    60% { transform: rotate(-8deg); }
-    75% { transform: rotate(4deg); }
-    100% { transform: rotate(0); }
-  }
-
-  /* ─── BOTTOM NAV (Mobile) ─── */
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 60;
-    background: #fbf9f5;
-    border-top: 2px solid #8b6a3e;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 6px 0 env(safe-area-inset-bottom, 6px);
-    box-shadow: 0 -4px 20px rgba(26,18,0,.08);
-  }
-  .bottom-nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 4px 12px;
-    border-radius: 8px;
-    transition: all 0.2s;
-    cursor: pointer;
-    border: none;
-    background: transparent;
-    font-family: 'Source Sans 3', sans-serif;
-  }
-  .bottom-nav-item span.material-symbols-outlined { font-size: 22px; color: #7d766b; }
-  .bottom-nav-item .nav-label { font-size: 10px; font-weight: 600; color: #7d766b; letter-spacing: 0.3px; }
-  .bottom-nav-item.active span.material-symbols-outlined { color: #1a1200; }
-  .bottom-nav-item.active .nav-label { color: #1a1200; }
-  .bottom-nav-item.active { background: rgba(26,18,0,.05); }
-  .bottom-nav-item.nav-logout span.material-symbols-outlined { color: #ba1a1a; }
-  .bottom-nav-item.nav-logout .nav-label { color: #ba1a1a; }
-
-  /* ─── MOBILE SIDEBAR OVERLAY ─── */
-  .sidebar-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.4);
-    z-index: 55;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-  }
-  .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
-
-  /* ─── MOBILE RESPONSIVE ─── */
-  @media (max-width: 768px) {
-    .notif-dropdown {
-      position: fixed;
-      top: auto;
-      bottom: 70px;
-      left: 8px;
-      right: 8px;
-      width: auto;
-      max-height: 60vh;
-    }
-    .notif-toast {
-      left: 12px;
-      right: 12px;
-      max-width: none;
-      top: 12px;
-    }
-    .filter-scroll {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    .filter-scroll::-webkit-scrollbar { display: none; }
-  }
+  .hidden { display: none !important; }
 </style>
 </head>
-<body class="min-h-screen">
-<!-- LOADING OVERLAY -->
-<div class="fixed inset-0 z-[1000] bg-surface flex flex-col items-center justify-center gap-4 transition-opacity duration-500" id="loadingOverlay">
-<div class="loading-spinner"></div>
-<p class="font-serif italic text-wood-noble">In Nomine Domini...</p>
+<body class="paper-texture">
+
+<!-- ═══════════ PANTALLA: ELEGIR NOMBRE ═══════════ -->
+<div id="pickerScreen" class="picker-wrap hidden">
+  <img class="picker-logo" src="Logo Seminario Borde (1).png" alt="Escudo del Seminario"/>
+  <h1>Guardias de Agosto</h1>
+  <p class="sub">Selecciona tu nombre para elegir tu guardia del mes.</p>
+  <p class="sub2">Seminario Mayor Santo Tomás de Aquino</p>
+  <div class="search-box">
+    <span class="msym">search</span>
+    <input id="searchName" type="text" placeholder="Busca tu nombre…" autocomplete="off"/>
+  </div>
+  <div class="names-list" id="namesList"></div>
 </div>
-<!-- LOGIN SCREEN -->
-<div class="hidden min-h-screen flex items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-surface via-surface-container-low to-paper-dark p-4 sm:p-6" id="loginScreen">
-<div class="w-full max-w-md bg-surface-container-lowest golden-border rounded-lg official-shadow overflow-hidden">
-<div class="bg-primary p-6 sm:p-10 text-center relative">
-<div class="mb-3 sm:mb-4 inline-block p-3 sm:p-4 border border-altar-gold/30 rounded-full">
-<span class="material-symbols-outlined text-altar-gold text-4xl sm:text-5xl">church</span>
-</div>
-<h1 class="text-on-primary font-headline-md text-xl sm:text-2xl mb-1">Seminario Mayor</h1>
-<h2 class="text-altar-gold font-tagline text-[10px] sm:text-xs uppercase tracking-widest">Santo Tomás de Aquino</h2>
-</div>
-<div class="p-5 sm:p-8">
-<div class="flex mb-8 bg-surface-container border border-outline-variant rounded-lg p-1">
-<button class="flex-1 py-2 text-sm font-semibold rounded-md transition-all active" id="tabStudent" onclick="switchTab('student')">Seminarista</button>
-<button class="flex-1 py-2 text-sm font-semibold rounded-md transition-all" id="tabAdmin" onclick="switchTab('admin')">Administrador</button>
-</div>
-<div class="hidden mb-6 p-4 bg-error-container text-on-error-container text-sm border border-error/20 rounded-lg flex items-center gap-2" id="loginError">
-<span class="material-symbols-outlined text-lg">error</span>
-<span id="errorText"></span>
-</div>
-<!-- Login Fields -->
-<div class="space-y-4" id="studentFields">
-<div>
-<label class="block text-[11px] font-bold uppercase tracking-wider text-wood-noble mb-2">Identidad del Seminarista</label>
-<select class="w-full border-outline-variant rounded-lg bg-surface-bright text-sm focus:ring-altar-gold focus:border-altar-gold" id="selectStudent"></select>
-</div>
-<div>
-<label class="block text-[11px] font-bold uppercase tracking-wider text-wood-noble mb-2">Clave de Acceso</label>
-<input class="w-full border-outline-variant rounded-lg bg-surface-bright text-sm focus:ring-altar-gold focus:border-altar-gold" id="studentPass" placeholder="••••••••" type="password"/>
-</div>
-</div>
-<div class="hidden space-y-4" id="adminFields">
-<div>
-<label class="block text-[11px] font-bold uppercase tracking-wider text-wood-noble mb-2">Clave Maestral</label>
-<input class="w-full border-outline-variant rounded-lg bg-surface-bright text-sm focus:ring-altar-gold focus:border-altar-gold" id="adminPass" placeholder="Acceso restringido" type="password"/>
-</div>
-</div>
-<button class="w-full mt-8 bg-primary text-on-primary py-3 rounded-lg font-bold text-sm tracking-wide hover:bg-wood-noble transition-colors flex items-center justify-center gap-2" id="loginBtn" onclick="doLogin()">
-<span>Ingresar al Sistema</span>
-<span class="material-symbols-outlined text-sm">arrow_forward</span>
-</button>
-</div>
-</div>
-</div>
-<!-- APP SCREEN -->
-<div class="hidden min-h-screen flex flex-col md:flex-row" id="appScreen">
-<!-- SIDENAVBAR (desktop only) -->
-<aside class="hidden md:flex w-64 h-screen sticky top-0 bg-surface-container-low border-r border-outline-variant flex-col p-6 shadow-md z-50">
-<div class="mb-10 text-center">
-<span class="material-symbols-outlined text-primary text-4xl mb-2">menu_book</span>
-<h3 class="font-headline-sm text-lg text-wood-noble leading-tight">Gestión</h3>
-<p class="text-[10px] uppercase tracking-widest text-altar-gold" id="roleLabel">Seminarista</p>
-</div>
-<nav class="flex-1 space-y-2">
-<button class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-primary bg-primary/5 hover:bg-primary/10 transition-all" onclick="navigate('dashboard')">
-<span class="material-symbols-outlined text-xl">dashboard</span>
-<span>Dashboard</span>
-</button>
-<button class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-on-surface-variant hover:bg-paper-dark/20 transition-all" onclick="navigate('requests')">
-<span class="material-symbols-outlined text-xl">description</span>
-<span id="navRequestsText">Solicitudes</span>
-</button>
-<div class="hidden space-y-2" id="adminNavOnly">
-<button class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-on-surface-variant hover:bg-paper-dark/20 transition-all" onclick="switchAdminTab('historial', this)">
-<span class="material-symbols-outlined text-xl">history_edu</span>
-<span>Historial General</span>
-</button>
-</div>
-</nav>
-<div class="mt-auto pt-6 border-t border-outline-variant">
-<button class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-error hover:bg-error/5 rounded-lg transition-all" onclick="doLogout()">
-<span class="material-symbols-outlined text-xl">logout</span>
-<span>Cerrar Sesión</span>
-</button>
-</div>
-</aside>
-<!-- BOTTOM NAV (mobile only) -->
-<nav class="md:hidden bottom-nav" id="bottomNav">
-  <button class="bottom-nav-item active" id="bnDashboard" onclick="mobileNav('dashboard')">
-    <span class="material-symbols-outlined">dashboard</span>
-    <span class="nav-label">Inicio</span>
-  </button>
-  <button class="bottom-nav-item" id="bnRequests" onclick="mobileNav('requests')">
-    <span class="material-symbols-outlined">description</span>
-    <span class="nav-label">Solicitudes</span>
-  </button>
-  <button class="bottom-nav-item hidden" id="bnHistorial" onclick="mobileNav('historial')">
-    <span class="material-symbols-outlined">history_edu</span>
-    <span class="nav-label">Historial</span>
-  </button>
-  <button class="bottom-nav-item nav-logout" onclick="doLogout()">
-    <span class="material-symbols-outlined">logout</span>
-    <span class="nav-label">Salir</span>
-  </button>
-</nav>
-<!-- MAIN CONTENT -->
-<main class="flex-1 bg-surface-bright overflow-y-auto">
-<!-- TOP BAR -->
-<header class="h-14 sm:h-16 sticky top-0 bg-surface border-b border-altar-gold flex items-center justify-between px-4 sm:px-8 z-40">
-<div class="min-w-0 flex-1 mr-3">
-<h4 class="font-serif text-sm sm:text-lg text-primary truncate" id="headerSubtitle">Cargando perfil...</h4>
-</div>
-<div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">
-<!-- Notification Bell -->
-<div class="relative" id="notifBellWrap">
-  <span class="material-symbols-outlined text-altar-gold cursor-pointer hover:text-wood-noble transition-colors text-2xl" id="notifBell" onclick="toggleNotifDropdown()">notifications</span>
-  <span class="notif-badge hidden" id="notifBadge">0</span>
-  <!-- Dropdown -->
-  <div class="notif-dropdown" id="notifDropdown">
-    <div class="p-4 border-b border-outline-variant flex items-center justify-between">
-      <h5 class="text-xs font-bold uppercase tracking-widest text-wood-noble">Notificaciones</h5>
-      <button class="text-[10px] text-altar-gold hover:text-primary font-bold uppercase tracking-wider" onclick="clearNotifications()">Limpiar</button>
+
+<!-- ═══════════ PANTALLA PRINCIPAL ═══════════ -->
+<div id="appScreen" class="hidden">
+  <header class="app">
+    <div class="header-inner">
+      <img src="Logo Seminario Borde (1).png" alt="Escudo"/>
+      <div>
+        <div class="header-title serif">Guardias de Agosto</div>
+        <div class="header-sub">Seminario Sto. Tomás de Aquino</div>
+      </div>
+      <button class="user-chip" onclick="cambiarNombre()" title="Cambiar de seminarista">
+        <span class="avatar" id="userAvatar"></span>
+        <span class="name" id="userName"></span>
+        <small>Cambiar</small>
+      </button>
     </div>
-    <div id="notifList" class="divide-y divide-outline-variant/50">
-      <div class="p-6 text-center text-sm text-outline italic">Sin notificaciones nuevas</div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <h1>Agosto 2026</h1>
+      <div class="rule"><span class="msym" style="font-size:20px">shield_person</span></div>
+      <p class="tag">
+        Los lunes son libres. Cada guardia dura de <b>martes 3:00 PM a viernes 9:00 AM</b>
+        o de <b>viernes 3:00 PM a lunes 9:00 AM</b>. Elige la tuya en una tarjeta disponible.
+      </p>
+    </div>
+
+    <div class="progress-card" id="progressCard">
+      <div class="row">
+        <span>Hermanos con guardia asignada</span>
+        <b><span id="countChosen">0</span> / 20</b>
+      </div>
+      <div class="progress-bar"><div id="progressFill"></div></div>
+      <div class="mi-guardia-line" id="miGuardiaLine"></div>
+    </div>
+
+    <div id="loadingVeil" class="loading-veil">
+      <div class="spinner"></div>
+      Consultando las guardias…
+    </div>
+
+    <div id="setupNotice" class="hidden"></div>
+    <div id="guardias"></div>
+  </main>
+
+  <footer class="app">Ad Maiorem Dei Gloriam · Guardias de Agosto 2026</footer>
+</div>
+
+<!-- ═══════════ MODAL CONFIRMACIÓN ═══════════ -->
+<div id="modalBack" class="modal-back hidden">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <p id="modalText"></p>
+    <div class="acts">
+      <button class="btn-ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-solid" id="modalOk"></button>
     </div>
   </div>
 </div>
-<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-xs font-bold" id="userInitial">?</div>
-</div>
-<!-- Toast container -->
-<div id="toastContainer"></div>
-</header>
-<div class="max-w-5xl mx-auto p-4 sm:p-6 md:p-10 pb-24 md:pb-10">
-<!-- STUDENT VIEW -->
-<div class="hidden space-y-6 sm:space-y-10" id="studentView">
-<div class="border-b border-outline-variant pb-4 sm:pb-6">
-<h2 class="font-headline-lg text-2xl sm:text-3xl text-primary mb-1" id="welcomeMsg">Paz y Bien</h2>
-<p class="text-wood-noble italic text-sm sm:text-base">Gestiona tus procesos internos de forma solemne y diligente.</p>
-</div>
-<!-- NEW REQUEST FORM (OFFICIAL DOCUMENT STYLE) -->
-<section class="bg-surface-container-lowest golden-border rounded-lg p-4 sm:p-6 md:p-10 official-shadow relative overflow-hidden">
-<div class="doc-seal">
-<span class="material-symbols-outlined text-9xl">shield</span>
-</div>
-<div class="flex flex-col sm:flex-row justify-between items-start mb-6 sm:mb-8 border-b-2 border-primary/10 pb-4 sm:pb-6 gap-2">
-<div>
-<h3 class="font-headline-sm text-lg sm:text-xl text-primary uppercase tracking-wide">Solicitud Formal</h3>
-<p class="text-[10px] sm:text-xs text-altar-gold">SEMINARIO MAYOR SANTO TOMÁS DE AQUINO</p>
-</div>
-<div class="sm:text-right">
-<p class="text-[10px] text-wood-noble uppercase font-bold tracking-tighter">Fecha del Documento</p>
-<p class="text-sm font-serif italic" id="docCurrentDate">-- / -- / ----</p>
-</div>
-</div>
-<div class="hidden mb-6 p-4 bg-liturgical-green/10 text-liturgical-green text-sm border border-liturgical-green/20 rounded-lg" id="formSuccess">
-            ✅ Solicitud enviada y registrada correctamente.
-          </div>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-<div class="space-y-6">
-<div>
-<label class="block text-[11px] font-bold uppercase tracking-widest text-wood-noble mb-3">Naturaleza de la Solicitud</label>
-<div class="flex flex-wrap gap-2">
-<button class="type-pill flex items-center gap-2 px-4 py-2 text-xs border border-outline-variant rounded-full hover:border-primary transition-all selected" onclick="selectType(this,'Permiso')">
-<span class="material-symbols-outlined text-sm">door_open</span> Permiso
-                  </button>
-<button class="type-pill flex items-center gap-2 px-4 py-2 text-xs border border-outline-variant rounded-full hover:border-primary transition-all" onclick="selectType(this,'Necesidad')">
-<span class="material-symbols-outlined text-sm">volunteer_activism</span> Necesidad
-                  </button>
-<button class="type-pill flex items-center gap-2 px-4 py-2 text-xs border border-outline-variant rounded-full hover:border-primary transition-all" onclick="selectType(this,'Propuesta')">
-<span class="material-symbols-outlined text-sm">lightbulb</span> Propuesta
-                  </button>
-</div>
-<input id="selectedType" type="hidden" value="Permiso"/>
-</div>
-<div>
-<label class="block text-[11px] font-bold uppercase tracking-widest text-wood-noble mb-3">Fecha Propuesta <span class="text-altar-gold font-normal lowercase">(opcional)</span></label>
-<input class="w-full border-outline-variant bg-surface-bright rounded-lg text-sm focus:ring-altar-gold focus:border-altar-gold" id="reqDate" type="date"/>
-</div>
-</div>
-<div>
-<label class="block text-[11px] font-bold uppercase tracking-widest text-wood-noble mb-3">Justificación y Motivo</label>
-<textarea class="w-full border-outline-variant bg-surface-bright rounded-lg text-sm focus:ring-altar-gold focus:border-altar-gold placeholder:italic" id="justification" placeholder="Exponga aquí sus motivos con claridad..." rows="5"></textarea>
-</div>
-</div>
-<div class="mt-6 sm:mt-10 pt-6 sm:pt-8 border-t border-outline-variant flex justify-end">
-<button class="bg-primary text-on-primary px-6 sm:px-10 py-3 rounded-lg font-bold text-sm shadow-md hover:bg-wood-noble transition-all flex items-center gap-3 w-full sm:w-auto justify-center" id="submitBtn" onclick="submitRequest()">
-<span>Firmar y Enviar</span>
-<span class="material-symbols-outlined text-sm">edit_note</span>
-</button>
-</div>
-</section>
-<!-- MY REQUESTS LIST -->
-<section>
-<div class="flex items-center justify-between mb-6">
-<h3 class="font-headline-sm text-xl sm:text-2xl text-primary" id="myReqTitle">Libro de Solicitudes</h3>
-</div>
-<div class="space-y-4" id="myReqList">
-<div class="text-center py-12 text-outline">Cargando registros...</div>
-</div>
-</section>
-</div>
-<!-- ADMIN VIEW -->
-<div class="hidden space-y-6 sm:space-y-10" id="adminView">
-<div class="border-b border-outline-variant pb-4 sm:pb-6">
-<h2 class="font-headline-lg text-2xl sm:text-3xl text-primary mb-1">Panel Rectoral</h2>
-<p class="text-wood-noble italic text-sm sm:text-base">Supervisión y discernimiento de las solicitudes del seminario.</p>
-</div>
-<!-- STATS -->
-<div class="grid grid-cols-3 gap-3 sm:gap-6">
-<div class="bg-surface-container-lowest golden-border p-3 sm:p-6 rounded-lg official-shadow text-center">
-<p class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-altar-gold mb-1 sm:mb-2">Pendientes</p>
-<div class="font-serif text-3xl sm:text-5xl text-primary" id="statPending">0</div>
-</div>
-<div class="bg-surface-container-lowest golden-border p-3 sm:p-6 rounded-lg official-shadow text-center">
-<p class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-altar-gold mb-1 sm:mb-2">Aprobadas</p>
-<div class="font-serif text-3xl sm:text-5xl text-liturgical-green" id="statApproved">0</div>
-</div>
-<div class="bg-surface-container-lowest golden-border p-3 sm:p-6 rounded-lg official-shadow text-center">
-<p class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-altar-gold mb-1 sm:mb-2">Denegadas</p>
-<div class="font-serif text-3xl sm:text-5xl text-error" id="statRejected">0</div>
-</div>
-</div>
-<!-- TABS PANEL -->
-<div class="space-y-6" id="panelSolicitudes">
-<div class="flex items-center gap-2 sm:gap-4 border-b border-outline-variant pb-4 filter-scroll">
-<button class="filter-btn px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all active border-b-2 border-primary whitespace-nowrap" onclick="setFilter('todos',this)">Todas</button>
-<button class="filter-btn px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all text-wood-noble hover:text-primary whitespace-nowrap" onclick="setFilter('pendiente',this)">⏳ Pendientes</button>
-<button class="filter-btn px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all text-wood-noble hover:text-primary whitespace-nowrap" onclick="setFilter('aprobado',this)">✅ Aprobadas</button>
-<button class="filter-btn px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all text-wood-noble hover:text-primary whitespace-nowrap" onclick="setFilter('rechazado',this)">❌ Rechazadas</button>
-</div>
-<div class="space-y-4" id="adminReqList"></div>
-</div>
-<!-- HISTORIAL PANEL -->
-<div class="hidden space-y-8" id="panelHistorial">
-<div class="flex items-center gap-4 bg-surface-container-low p-4 rounded-lg border border-outline-variant">
-<span class="material-symbols-outlined text-altar-gold">search</span>
-<input class="flex-1 bg-transparent border-none focus:ring-0 text-sm" id="histSearchInput" oninput="renderSeminarianGrid()" placeholder="Buscar seminarista en el historial..." type="text"/>
-</div>
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="seminarianGrid"></div>
-<div class="hidden pt-8 border-t border-altar-gold/30" id="historialDetail"></div>
-</div>
-</div>
-</div>
-</main>
-</div>
+
+<div id="toast"><span class="msym" id="toastIcon">check_circle</span><span id="toastText"></span></div>
+
 <script>
-// ─── SUPABASE CONFIG ───────────────────────────────────────────────────────────
+// ─── SUPABASE ────────────────────────────────────────────────────────────────
 const SUPABASE_URL = "https://yisjmtejpokkvupohkhd.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlpc2ptdGVqcG9ra3Z1cG9oa2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzg3MDEsImV4cCI6MjA5NDcxNDcwMX0.lBvH612ohhQVZdYnlcl6CKwVGJinZ6_Lnk6w8M495ns";
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const TABLE = "guardias_agosto";
 
-// ─── DATA ──────────────────────────────────────────────────────────────────────
+// ─── SEMINARISTAS ────────────────────────────────────────────────────────────
 const STUDENTS = [
   {id:"s01", name:"Alfenyer Alfonso Fernández Luzardo"},
   {id:"s02", name:"Cesar David Petit Hansen"},
@@ -565,744 +434,371 @@ const STUDENTS = [
   {id:"s31", name:"José Miguel Sierra Nava"},
 ];
 
-const TYPE_CFG = {
-  Permiso:   {icon:"door_open", color:"#5a4530"},
-  Necesidad: {icon:"volunteer_activism", color:"#8b6a3e"},
-  Propuesta: {icon:"lightbulb", color:"#2e7d32"},
+// ─── GUARDIAS DE AGOSTO 2026 ─────────────────────────────────────────────────
+// Lunes libres. Semana: martes 3PM → viernes 9AM. Fin de semana: viernes 3PM → lunes 9AM.
+const TOTAL_PERSONAS = 20;
+const CUPO_BASE = 2;   // cupo garantizado por guardia
+const CUPO_MAX  = 3;   // el 3er puesto se abre cuando todas las guardias tienen 2
+
+const GUARDIAS = [
+  {id:"g1", semana:1, tipo:"semana", titulo:"Martes 4 — Viernes 7",   entradaDia:"Martes 4",   salidaDia:"Viernes 7"},
+  {id:"g2", semana:1, tipo:"finde",  titulo:"Viernes 7 — Lunes 10",   entradaDia:"Viernes 7",  salidaDia:"Lunes 10"},
+  {id:"g3", semana:2, tipo:"semana", titulo:"Martes 11 — Viernes 14", entradaDia:"Martes 11",  salidaDia:"Viernes 14"},
+  {id:"g4", semana:2, tipo:"finde",  titulo:"Viernes 14 — Lunes 17",  entradaDia:"Viernes 14", salidaDia:"Lunes 17"},
+  {id:"g5", semana:3, tipo:"semana", titulo:"Martes 18 — Viernes 21", entradaDia:"Martes 18",  salidaDia:"Viernes 21"},
+  {id:"g6", semana:3, tipo:"finde",  titulo:"Viernes 21 — Lunes 24",  entradaDia:"Viernes 21", salidaDia:"Lunes 24"},
+  {id:"g7", semana:4, tipo:"semana", titulo:"Martes 25 — Viernes 28", entradaDia:"Martes 25",  salidaDia:"Viernes 28"},
+  {id:"g8", semana:4, tipo:"finde",  titulo:"Viernes 28 — Lunes 31",  entradaDia:"Viernes 28", salidaDia:"Lunes 31"},
+];
+const SEMANAS = {
+  1: "Semana I · del 4 al 10 de agosto",
+  2: "Semana II · del 11 al 17 de agosto",
+  3: "Semana III · del 18 al 24 de agosto",
+  4: "Semana IV · del 25 al 31 de agosto",
 };
 
-const STATUS_CFG = {
-  pendiente: {label:"Pendiente", icon:"hourglass_empty", color:"#745b13", bg:"#ffdc89"},
-  aprobado:  {label:"Aprobado",  icon:"verified", color:"#2e7d32", bg:"#e8f5e9"},
-  rechazado: {label:"Denegado",  icon:"block", color:"#ba1a1a", bg:"#ffdad6"},
-};
+const AVATAR_COLORS = ["#8b6a3e", "#5a4530", "#2e7d32", "#745b13", "#2c1f0e", "#005312"];
 
-// ─── STATE ─────────────────────────────────────────────────────────────────────
-let currentSession = null;
-let currentFilter = "todos";
-let currentAdminTab = "solicitudes";
-let selectedSeminarianId = null;
+// ─── ESTADO ──────────────────────────────────────────────────────────────────
+let me = null;           // {id, name}
+let selections = [];     // filas de la tabla guardias_agosto
+let pendingAction = null;
 let realtimeChannel = null;
-let notifications = [];
-let previousStatuses = {};  // track statuses to detect changes
+let pollTimer = null;
 
-// ─── HELPERS ───────────────────────────────────────────────────────────────────
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+const $ = (id) => document.getElementById(id);
 function initials(name) {
-  const parts = name.trim().split(" ");
-  return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
+  const p = name.trim().split(/\s+/);
+  return (p[0][0] + (p[1]?.[0] || "")).toUpperCase();
 }
-function showLoading(show) {
-  const el = document.getElementById("loadingOverlay");
-  if (show) {
-    el.classList.remove("hidden", "opacity-0");
-  } else {
-    el.classList.add("opacity-0");
-    setTimeout(() => el.classList.add("hidden"), 500);
-  }
+function avatarColor(id) {
+  let h = 0;
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
 }
-function showError(msg) {
-  const el = document.getElementById("loginError");
-  document.getElementById("errorText").textContent = msg;
-  el.classList.remove("hidden");
+function shortName(name) {
+  const p = name.trim().split(/\s+/);
+  return p.length <= 2 ? name : p[0] + " " + p[p.length - 2];
+}
+function toast(msg, isError = false) {
+  const t = $("toast");
+  $("toastText").textContent = msg;
+  $("toastIcon").textContent = isError ? "error" : "check_circle";
+  t.classList.toggle("err", isError);
+  t.classList.add("show");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove("show"), 3200);
 }
 
-// ─── INIT ──────────────────────────────────────────────────────────────────────
-(function init() {
-  const sel = document.getElementById("selectStudent");
-  STUDENTS.sort((a,b) => a.name.localeCompare(b.name)).forEach(s => {
-    const o = document.createElement("option");
-    o.value = s.id; o.textContent = s.name; sel.appendChild(o);
+// ─── REGLAS DE DISTRIBUCIÓN ──────────────────────────────────────────────────
+function countsPorGuardia() {
+  const counts = {};
+  GUARDIAS.forEach(g => counts[g.id] = 0);
+  selections.forEach(s => { if (counts[s.guardia_id] !== undefined) counts[s.guardia_id]++; });
+  return counts;
+}
+// Una guardia acepta a alguien nuevo si tiene menos de 2 personas; el tercer
+// puesto solo se habilita cuando TODAS las guardias ya tienen su cupo base.
+function estadoGuardia(gid, counts, exceptMyOwn) {
+  const c = counts[gid];
+  if (c < CUPO_BASE) return "libre";
+  const todasConBase = GUARDIAS.every(g => {
+    let n = counts[g.id];
+    // si estoy cambiándome desde esa guardia, mi salida la dejaría con uno menos
+    if (exceptMyOwn && g.id === exceptMyOwn) n -= 1;
+    return n >= CUPO_BASE;
   });
-  document.getElementById("docCurrentDate").textContent = new Date().toLocaleDateString("es-ES", {day:'2-digit', month:'long', year:'numeric'});
-  
-  // Verificar si hay una sesión guardada en localStorage
-  const savedSession = localStorage.getItem('sempermisos_session');
-  
-  setTimeout(() => {
-    showLoading(false);
-    if (savedSession) {
-      try {
-        currentSession = JSON.parse(savedSession);
-        enterApp();
-        if (currentSession.role === 'student') {
-          showStudentView();
-        } else {
-          showAdminView();
-        }
-      } catch (e) {
-        console.error("Error al cargar la sesión guardada:", e);
-        localStorage.removeItem('sempermisos_session');
-        document.getElementById("loginScreen").classList.remove("hidden");
-      }
-    } else {
-      document.getElementById("loginScreen").classList.remove("hidden");
-    }
-  }, 1200);
-})();
+  if (c < CUPO_MAX) return todasConBase ? "libre" : "bloqueada";
+  return "llena";
+}
 
-// ─── AUTH ──────────────────────────────────────────────────────────────────────
-let activeTab = "student";
-function switchTab(tab) {
-  activeTab = tab;
-  const ts = document.getElementById("tabStudent");
-  const ta = document.getElementById("tabAdmin");
-  
-  if (tab === 'student') {
-    ts.classList.add("bg-primary", "text-on-primary", "shadow-sm");
-    ta.classList.remove("bg-primary", "text-on-primary", "shadow-sm");
+// ─── PANTALLA DE NOMBRE ──────────────────────────────────────────────────────
+function renderNames(filter = "") {
+  const list = $("namesList");
+  const f = filter.trim().toLowerCase();
+  const taken = new Set(selections.map(s => s.seminarista_id));
+  list.innerHTML = "";
+  STUDENTS
+    .slice().sort((a, b) => a.name.localeCompare(b.name))
+    .filter(s => s.name.toLowerCase().includes(f))
+    .forEach(s => {
+      const btn = document.createElement("button");
+      btn.className = "name-item";
+      btn.innerHTML = `
+        <span class="avatar" style="background:${avatarColor(s.id)}">${initials(s.name)}</span>
+        <span>${s.name}${taken.has(s.id) ? '<small>Ya tiene guardia elegida</small>' : ''}</span>
+        <span class="msym">chevron_right</span>`;
+      btn.onclick = () => elegirNombre(s);
+      list.appendChild(btn);
+    });
+  if (!list.children.length) {
+    list.innerHTML = `<div style="padding:20px;text-align:center;color:var(--outline);font-size:14px">Sin resultados para “${filter}”.</div>`;
+  }
+}
+function elegirNombre(s) {
+  me = { id: s.id, name: s.name };
+  localStorage.setItem("guardias_user", JSON.stringify(me));
+  mostrarApp();
+}
+function cambiarNombre() {
+  localStorage.removeItem("guardias_user");
+  me = null;
+  $("appScreen").classList.add("hidden");
+  $("pickerScreen").classList.remove("hidden");
+  $("searchName").value = "";
+  renderNames();
+}
+
+// ─── RENDER PRINCIPAL ────────────────────────────────────────────────────────
+function mostrarApp() {
+  $("pickerScreen").classList.add("hidden");
+  $("appScreen").classList.remove("hidden");
+  $("userAvatar").textContent = initials(me.name);
+  $("userAvatar").style.background = avatarColor(me.id);
+  $("userName").textContent = shortName(me.name);
+  render();
+}
+
+function render() {
+  if (!me) return;
+  const counts = countsPorGuardia();
+  const mine = selections.find(s => s.seminarista_id === me.id);
+
+  // progreso
+  const chosen = selections.length;
+  $("countChosen").textContent = chosen;
+  $("progressFill").style.width = Math.min(100, (chosen / TOTAL_PERSONAS) * 100) + "%";
+  const line = $("miGuardiaLine");
+  if (mine) {
+    const g = GUARDIAS.find(x => x.id === mine.guardia_id);
+    line.innerHTML = `<span class="msym">verified</span> Tu guardia: <b>${g ? g.titulo : mine.guardia_id}</b> — puedes cambiarla eligiendo otra tarjeta.`;
   } else {
-    ta.classList.add("bg-primary", "text-on-primary", "shadow-sm");
-    ts.classList.remove("bg-primary", "text-on-primary", "shadow-sm");
+    line.innerHTML = `<span class="msym" style="color:var(--altar-gold)">touch_app</span> Aún no has elegido tu guardia. Toca una tarjeta disponible.`;
   }
-  
-  document.getElementById("studentFields").classList.toggle("hidden", tab!=="student");
-  document.getElementById("adminFields").classList.toggle("hidden", tab!=="admin");
-  document.getElementById("loginBtn").querySelector('span').textContent = tab==="student" ? "Ingresar al sistema" : "Acceso Administrativo";
-  document.getElementById("loginError").classList.add("hidden");
+
+  // tarjetas por semana
+  const cont = $("guardias");
+  cont.innerHTML = "";
+  [1, 2, 3, 4].forEach(w => {
+    const h = document.createElement("div");
+    h.className = "week-title";
+    h.innerHTML = `<span class="num">Semana ${["I","II","III","IV"][w-1]}</span> ${SEMANAS[w].split("·")[1].trim()}`;
+    cont.appendChild(h);
+    const grid = document.createElement("div");
+    grid.className = "cards-grid";
+    GUARDIAS.filter(g => g.semana === w).forEach(g => grid.appendChild(cardGuardia(g, counts, mine)));
+    cont.appendChild(grid);
+  });
 }
 
-async function doLogin() {
-  document.getElementById("loginError").classList.add("hidden");
-  const btn = document.getElementById("loginBtn");
-  const span = btn.querySelector('span');
-  const originalText = span.textContent;
-  btn.disabled = true;
-  span.textContent = "Validando credenciales...";
+function cardGuardia(g, counts, mine) {
+  const c = counts[g.id];
+  const isMine = mine && mine.guardia_id === g.id;
+  const estado = estadoGuardia(g.id, counts, mine ? mine.guardia_id : null);
+  const members = selections
+    .filter(s => s.guardia_id === g.id)
+    .sort((a, b) => a.seminarista_nombre.localeCompare(b.seminarista_nombre));
 
-  try {
-    if (activeTab === "student") {
-      const id = document.getElementById("selectStudent").value;
-      const pass = document.getElementById("studentPass").value;
-      if (!id) { showError("Seleccione su nombre del listado."); return; }
-      if (!pass) { showError("Ingrese su clave personal."); return; }
+  const card = document.createElement("div");
+  card.className = `gcard ${g.tipo}${isMine ? " mine" : ""}`;
 
-      const { data, error } = await sb.from("seminary_users")
-        .select("*").eq("id", id).eq("password", pass).eq("role","student").single();
-      if (error || !data) { showError("Credenciales incorrectas."); return; }
+  const tipoLabel = g.tipo === "semana"
+    ? `<span class="type-chip"><span class="msym">wb_sunny</span>Guardia de semana</span>`
+    : `<span class="type-chip"><span class="msym">weekend</span>Fin de semana</span>`;
 
-      const student = STUDENTS.find(s => s.id === id);
-      currentSession = { role: "student", student };
-      
-      // Guardar sesión en localStorage
-      localStorage.setItem('sempermisos_session', JSON.stringify(currentSession));
-      
-      enterApp();
-      showStudentView();
+  const memberHtml = members.length
+    ? members.map(m => `
+        <div class="member-row${m.seminarista_id === me.id ? " me" : ""}">
+          <span class="avatar" style="background:${avatarColor(m.seminarista_id)}">${initials(m.seminarista_nombre)}</span>
+          <b>${m.seminarista_id === me.id ? "Tú" : shortName(m.seminarista_nombre)}</b>
+        </div>`).join("")
+    : `<div class="empty"><span class="msym">person_add</span>Nadie ha tomado esta guardia todavía</div>`;
 
-    } else {
-      const pass = document.getElementById("adminPass").value;
-      if (!pass) { showError("Ingrese la clave administrativa."); return; }
+  const dots = Array.from({length: CUPO_MAX}, (_, i) =>
+    `<span class="slot-dot${i >= CUPO_BASE ? " bonus" : ""}${i < c ? " full" : ""}"></span>`).join("");
 
-      const { data, error } = await sb.from("seminary_users")
-        .select("*").eq("role","admin").eq("password", pass).single();
-      if (error || !data) { showError("Clave de administrador incorrecta."); return; }
-
-      currentSession = { role: "admin" };
-      
-      // Guardar sesión en localStorage
-      localStorage.setItem('sempermisos_session', JSON.stringify(currentSession));
-      
-      enterApp();
-      showAdminView();
-    }
-  } catch(e) {
-    showError("Error de conexión con la curia.");
-  } finally {
-    btn.disabled = false;
-    span.textContent = originalText;
-  }
-}
-
-function enterApp() {
-  document.getElementById("loginScreen").classList.add("hidden");
-  document.getElementById("appScreen").classList.remove("hidden");
-  document.getElementById("userInitial").textContent = currentSession.role === "student" ? initials(currentSession.student.name) : "AD";
-  document.getElementById("roleLabel").textContent = currentSession.role === "student" ? "Seminarista" : "Administrador";
-  document.getElementById("adminNavOnly").classList.toggle("hidden", currentSession.role !== "admin");
-  // Show/hide admin-only bottom nav items
-  const bnHist = document.getElementById("bnHistorial");
-  if (bnHist) bnHist.classList.toggle("hidden", currentSession.role !== "admin");
-  subscribeRealtime();
-}
-
-function doLogout() {
-  if (realtimeChannel) { sb.removeChannel(realtimeChannel); realtimeChannel = null; }
-  currentSession = null;
-  // Borrar sesión de localStorage
-  localStorage.removeItem('sempermisos_session');
-  
-  document.getElementById("appScreen").classList.add("hidden");
-  document.getElementById("studentView").classList.add("hidden");
-  document.getElementById("adminView").classList.add("hidden");
-  document.getElementById("loginScreen").classList.remove("hidden");
-  document.getElementById("studentPass").value = "";
-  document.getElementById("adminPass").value = "";
-  document.getElementById("loginError").classList.add("hidden");
-}
-
-// ─── NAVIGATION ────────────────────────────────────────────────────────────────
-function navigate(view) {
-    if (currentSession.role === 'admin') {
-        if (view === 'dashboard' || view === 'requests') {
-            switchAdminTab('solicitudes', document.querySelector('.nav-item'));
-        }
-    } else {
-        // Simple scroll or toggle for student if needed
-    }
-}
-
-// ─── MOBILE NAV ───────────────────────────────────────────────────────────────
-function mobileNav(view) {
-  // Update active state on bottom nav
-  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
-  const btnId = view === 'dashboard' ? 'bnDashboard' : view === 'requests' ? 'bnRequests' : 'bnHistorial';
-  const btn = document.getElementById(btnId);
-  if (btn) btn.classList.add('active');
-
-  if (currentSession.role === 'admin') {
-    if (view === 'historial') {
-      switchAdminTab('historial', document.querySelector('.nav-item'));
-    } else {
-      switchAdminTab('solicitudes', document.querySelector('.nav-item'));
-    }
+  let action;
+  if (isMine) {
+    action = `<button class="btn-take is-mine"><span class="msym">check_circle</span>Tu guardia</button>
+              <button class="btn-leave" onclick="pedirSalir('${g.id}')">Salirme</button>`;
+  } else if (estado === "llena") {
+    action = `<button class="btn-take is-full" disabled><span class="msym">lock</span>Completa</button>`;
+  } else if (estado === "bloqueada") {
+    action = `<div class="locked-hint"><span class="msym">hourglass_top</span>El 3.er puesto se abre cuando todas las guardias tengan ${CUPO_BASE}</div>`;
   } else {
-    // Student: scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const verb = mine ? "Cambiarme aquí" : "Tomar esta guardia";
+    action = `<button class="btn-take" onclick="pedirTomar('${g.id}')"><span class="msym">front_hand</span>${verb}</button>`;
   }
-}
 
-// ─── REALTIME ──────────────────────────────────────────────────────────────────
-function subscribeRealtime() {
-  if (realtimeChannel) sb.removeChannel(realtimeChannel);
-  realtimeChannel = sb.channel('requests-changes')
-    .on('postgres_changes', { event:'*', schema:'public', table:'requests' }, (payload) => {
-      if (currentSession?.role === "student") {
-        // Check if this is a status change on one of MY requests
-        if (payload.eventType === 'UPDATE' && payload.new) {
-          const r = payload.new;
-          if (r.student_id === currentSession.student.id && (r.status === 'aprobado' || r.status === 'rechazado')) {
-            const prevStatus = previousStatuses[r.id];
-            if (prevStatus && prevStatus === 'pendiente' && prevStatus !== r.status) {
-              addNotification(r);
-            }
-          }
-          previousStatuses[r.id] = r.status;
-        }
-        renderMyRequests();
-      }
-      else if (currentSession?.role === "admin") {
-        renderAdminRequests();
-        if (currentAdminTab === "historial" && selectedSeminarianId) renderHistorialDetail(selectedSeminarianId);
-        renderSeminarianGrid();
-      }
-    })
-    .subscribe();
-}
-
-// ─── NOTIFICATIONS ─────────────────────────────────────────────────────────────
-function addNotification(r) {
-  const st = STATUS_CFG[r.status];
-  const notif = {
-    id: r.id,
-    type: r.type,
-    status: r.status,
-    statusLabel: st.label,
-    statusColor: st.color,
-    statusBg: st.bg,
-    statusIcon: st.icon,
-    comment: r.comment || '',
-    time: new Date(),
-  };
-  notifications.unshift(notif);
-  updateNotifBadge();
-  renderNotifList();
-  showToast(notif);
-  ringBell();
-
-  // Lanzar notificación nativa del sistema operativo si la pestaña está en segundo plano o abierta
-  if (window.Notification && Notification.permission === "granted") {
-    const title = r.status === 'aprobado' ? '✅ Solicitud Aprobada' : '❌ Solicitud Denegada';
-    const body = `Tu solicitud de ${r.type.toLowerCase()} fue resuelta por la Rectoría.${r.comment ? `\n"${r.comment}"` : ''}`;
-    try {
-      new Notification(title, {
-        body: body,
-        icon: 'Logo Seminario Borde (1).png',
-        badge: 'Logo Seminario Borde (1).png'
-      });
-    } catch (e) {
-      console.warn("No se pudo mostrar la notificación nativa:", e);
-    }
-  }
-}
-
-function updateNotifBadge() {
-  const badge = document.getElementById('notifBadge');
-  if (notifications.length > 0) {
-    badge.textContent = notifications.length > 9 ? '9+' : notifications.length;
-    badge.classList.remove('hidden');
-  } else {
-    badge.classList.add('hidden');
-  }
-}
-
-function renderNotifList() {
-  const container = document.getElementById('notifList');
-  if (!notifications.length) {
-    container.innerHTML = '<div class="p-6 text-center text-sm text-outline italic">Sin notificaciones nuevas</div>';
-    return;
-  }
-  container.innerHTML = notifications.map(n => {
-    const ago = timeAgo(n.time);
-    const icon = n.status === 'aprobado' ? 'verified' : 'block';
-    const msg = n.status === 'aprobado' ? 'ha sido <strong>aprobada</strong>' : 'ha sido <strong>denegada</strong>';
-    return `
-      <div class="p-4 hover:bg-surface-container-low/50 transition-colors cursor-default">
-        <div class="flex items-start gap-3">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background:${n.statusBg}">
-            <span class="material-symbols-outlined text-lg" style="color:${n.statusColor}">${icon}</span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm text-primary leading-snug">Tu solicitud de <strong>${n.type}</strong> ${msg}</p>
-            ${n.comment ? `<p class="text-xs text-wood-noble italic mt-1">"${n.comment}"</p>` : ''}
-            <p class="text-[10px] text-outline mt-1 uppercase tracking-wider font-bold">${ago}</p>
-          </div>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-function toggleNotifDropdown() {
-  const dd = document.getElementById('notifDropdown');
-  dd.classList.toggle('open');
-  // Close on click outside
-  if (dd.classList.contains('open')) {
-    setTimeout(() => {
-      document.addEventListener('click', closeNotifOutside);
-    }, 10);
-  }
-}
-
-function closeNotifOutside(e) {
-  const wrap = document.getElementById('notifBellWrap');
-  if (!wrap.contains(e.target)) {
-    document.getElementById('notifDropdown').classList.remove('open');
-    document.removeEventListener('click', closeNotifOutside);
-  }
-}
-
-function clearNotifications() {
-  notifications = [];
-  updateNotifBadge();
-  renderNotifList();
-  document.getElementById('notifDropdown').classList.remove('open');
-}
-
-function showToast(n) {
-  const container = document.getElementById('toastContainer');
-  const icon = n.status === 'aprobado' ? 'verified' : 'block';
-  const msg = n.status === 'aprobado' ? 'Solicitud Aprobada' : 'Solicitud Denegada';
-  const toast = document.createElement('div');
-  toast.className = 'notif-toast';
-  toast.innerHTML = `
-    <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:${n.statusBg}">
-      <span class="material-symbols-outlined text-xl" style="color:${n.statusColor}">${icon}</span>
+  card.innerHTML = `
+    <div class="gcard-top">${tipoLabel}${isMine ? '<span class="mine-chip"><span class="msym">star</span>La mía</span>' : ""}</div>
+    <h3>${g.titulo}</h3>
+    <div class="times">
+      <div class="time-box">
+        <div class="lbl"><span class="msym">login</span>Entrada</div>
+        <b>${g.entradaDia}</b><span>3:00 PM</span>
+      </div>
+      <div class="time-box">
+        <div class="lbl"><span class="msym">logout</span>Salida</div>
+        <b>${g.salidaDia}</b><span>9:00 AM</span>
+      </div>
     </div>
-    <div>
-      <p class="text-sm font-bold text-primary">${msg}</p>
-      <p class="text-xs text-on-surface-variant mt-0.5">Tu ${n.type.toLowerCase()} ${n.status === 'aprobado' ? 'fue aprobada' : 'fue denegada'} por la Rectoría.</p>
-      ${n.comment ? `<p class="text-xs text-wood-noble italic mt-1">"${n.comment}"</p>` : ''}
+    <div class="members">${memberHtml}</div>
+    <div class="gcard-foot">
+      <div class="slots">${dots}<small>${c}/${CUPO_MAX}</small></div>
+      <div style="display:flex;align-items:center;gap:10px">${action}</div>
     </div>`;
-  container.appendChild(toast);
-  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 5200);
+  return card;
 }
 
-function ringBell() {
-  const bell = document.getElementById('notifBell');
-  bell.classList.add('bell-ring');
-  setTimeout(() => bell.classList.remove('bell-ring'), 700);
+// ─── ACCIONES ────────────────────────────────────────────────────────────────
+function pedirTomar(gid) {
+  const g = GUARDIAS.find(x => x.id === gid);
+  const mine = selections.find(s => s.seminarista_id === me.id);
+  if (mine) {
+    const prev = GUARDIAS.find(x => x.id === mine.guardia_id);
+    abrirModal("Cambiar de guardia",
+      `Dejarás la guardia <b>${prev ? prev.titulo : ""}</b> y tomarás la de <b>${g.titulo}</b>. ¿Confirmas?`,
+      "Sí, cambiarme", () => tomarGuardia(gid));
+  } else {
+    abrirModal("Confirmar guardia",
+      `<b>${me.name}</b>, tomarás la guardia del <b>${g.titulo}</b> (entrada ${g.entradaDia} 3:00 PM, salida ${g.salidaDia} 9:00 AM). ¿Confirmas?`,
+      "Sí, es mi guardia", () => tomarGuardia(gid));
+  }
+}
+function pedirSalir(gid) {
+  const g = GUARDIAS.find(x => x.id === gid);
+  abrirModal("Salir de la guardia",
+    `Quedarás sin guardia asignada y liberarás tu puesto en <b>${g.titulo}</b>. ¿Confirmas?`,
+    "Sí, salirme", () => salirGuardia(), true);
 }
 
-function timeAgo(date) {
-  const s = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (s < 60) return 'Justo ahora';
-  if (s < 3600) return `Hace ${Math.floor(s/60)} min`;
-  if (s < 86400) return `Hace ${Math.floor(s/3600)}h`;
-  return date.toLocaleDateString('es-ES', {day:'2-digit', month:'short'});
-}
-
-// Load initial statuses to track changes
-async function loadPreviousStatuses() {
-  if (!currentSession || currentSession.role !== 'student') return;
-  const { data } = await sb.from('requests')
-    .select('id,status')
-    .eq('student_id', currentSession.student.id);
-  if (data) data.forEach(r => { previousStatuses[r.id] = r.status; });
-}
-
-// ─── WEB PUSH NOTIFICATIONS ───────────────────────────────────────────────────
-const VAPID_PUBLIC_KEY = "BMIFoYEdOfO5Jo33QO5a9JKCIXJhZ7GVfxMtgxf1SHT1qdiXDfT6JNICk6mCcQCJe59NDVZHQI3xZIg6qrGJZdI";
-
-async function setupPushNotifications(studentId) {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    console.warn('Las notificaciones Push no son soportadas en este navegador o dispositivo.');
+async function tomarGuardia(gid) {
+  cerrarModal();
+  await refetch(true);
+  const counts = countsPorGuardia();
+  const mine = selections.find(s => s.seminarista_id === me.id);
+  if (mine && mine.guardia_id === gid) { render(); return; }
+  const estado = estadoGuardia(gid, counts, mine ? mine.guardia_id : null);
+  if (estado !== "libre") {
+    toast("Esa guardia ya no está disponible. Elige otra.", true);
+    render();
     return;
   }
+  const { error } = await sb.from(TABLE).upsert(
+    { seminarista_id: me.id, seminarista_nombre: me.name, guardia_id: gid },
+    { onConflict: "seminarista_id" }
+  );
+  if (error) { console.error(error); toast("No se pudo guardar. Intenta de nuevo.", true); return; }
+  await refetch();
+  const g = GUARDIAS.find(x => x.id === gid);
+  toast(`Guardia confirmada: ${g.titulo}`);
+}
 
-  try {
-    // 1. Registrar Service Worker
-    const register = await navigator.serviceWorker.register('sw.js');
-    console.log('Service Worker registrado:', register);
-    
-    // 2. Solicitar Permisos al usuario
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') {
-      console.log('Permiso de notificación Push denegado.');
-      return;
-    }
+async function salirGuardia() {
+  cerrarModal();
+  const { error } = await sb.from(TABLE).delete().eq("seminarista_id", me.id);
+  if (error) { console.error(error); toast("No se pudo liberar tu puesto.", true); return; }
+  await refetch();
+  toast("Has salido de tu guardia.");
+}
 
-    // Esperar a que el service worker esté listo
-    await navigator.serviceWorker.ready;
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function abrirModal(title, html, okLabel, onOk, danger = false) {
+  $("modalTitle").textContent = title;
+  $("modalText").innerHTML = html;
+  const ok = $("modalOk");
+  ok.textContent = okLabel;
+  ok.className = "btn-solid" + (danger ? " danger" : "");
+  pendingAction = onOk;
+  ok.onclick = () => pendingAction && pendingAction();
+  $("modalBack").classList.remove("hidden");
+}
+function cerrarModal() {
+  pendingAction = null;
+  $("modalBack").classList.add("hidden");
+}
+$("modalBack").addEventListener("click", (e) => { if (e.target.id === "modalBack") cerrarModal(); });
 
-    // 3. Suscribir al servicio push del navegador
-    let subscription = await register.pushManager.getSubscription();
-    
-    if (!subscription) {
-      subscription = await register.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      });
-      console.log('Nueva suscripción push creada.');
-    } else {
-      console.log('Suscripción push existente encontrada.');
-    }
-
-    // 4. Guardar o actualizar la suscripción en Supabase
-    const { error } = await sb.from('push_subscriptions').upsert({
-      student_id: studentId,
-      subscription: subscription
-    }, { onConflict: 'student_id,subscription' });
-
-    if (error) {
-      console.error('Error al guardar la suscripción en Supabase:', error);
-    } else {
-      console.log('Suscripción push guardada en Supabase.');
-    }
-  } catch (error) {
-    console.error('Error durante la configuración de Push:', error);
+// ─── DATOS ───────────────────────────────────────────────────────────────────
+async function refetch(silent = false) {
+  const { data, error } = await sb.from(TABLE).select("*");
+  $("loadingVeil").classList.add("hidden");
+  if (error) {
+    console.error(error);
+    if (esTablaFaltante(error)) { mostrarSetup(); return; }
+    if (!silent) toast("Error de conexión. Reintentando…", true);
+    return;
   }
+  $("setupNotice").classList.add("hidden");
+  selections = data || [];
+  if (me) render(); else renderNames($("searchName").value);
 }
 
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
+function esTablaFaltante(error) {
+  return error && (error.code === "42P01" || error.code === "PGRST205" ||
+    /guardias_agosto.*(not exist|schema cache)|schema cache.*guardias_agosto/i.test(error.message || ""));
 }
 
-// ─── STUDENT ───────────────────────────────────────────────────────────────────
-function showStudentView() {
-  const s = currentSession.student;
-  document.getElementById("headerSubtitle").textContent = s.name;
-  document.getElementById("welcomeMsg").textContent = "Pax et Bonum, " + s.name.split(" ")[0];
-  document.getElementById("studentView").classList.remove("hidden");
-  document.getElementById("adminView").classList.add("hidden");
-  renderMyRequests();
-  loadPreviousStatuses();
-  setupPushNotifications(s.id); // Iniciar suscripción push al entrar como estudiante
+const SETUP_SQL = `create table if not exists public.guardias_agosto (
+  id bigint generated by default as identity primary key,
+  seminarista_id text not null unique,
+  seminarista_nombre text not null,
+  guardia_id text not null,
+  created_at timestamptz not null default now()
+);
+alter table public.guardias_agosto enable row level security;
+create policy "lectura publica"  on public.guardias_agosto for select using (true);
+create policy "insertar publico" on public.guardias_agosto for insert with check (true);
+create policy "cambiar publico"  on public.guardias_agosto for update using (true) with check (true);
+create policy "salir publico"    on public.guardias_agosto for delete using (true);
+alter publication supabase_realtime add table public.guardias_agosto;`;
+
+function mostrarSetup() {
+  const n = $("setupNotice");
+  n.className = "setup-card";
+  n.innerHTML = `
+    <h3>Falta un paso de configuración</h3>
+    <p>La tabla <b>guardias_agosto</b> aún no existe en Supabase. Entra al
+    <b>SQL Editor</b> de tu proyecto de Supabase, pega este código y presiona <b>Run</b>.
+    Luego recarga esta página.</p>
+    <pre>${SETUP_SQL}</pre>
+    <button class="btn-solid" onclick="navigator.clipboard.writeText(SETUP_SQL).then(()=>toast('SQL copiado al portapapeles'))">
+      Copiar SQL
+    </button>`;
 }
 
-function selectType(btn, type) {
-  document.querySelectorAll(".type-pill").forEach(p => p.classList.remove("selected"));
-  btn.classList.add("selected");
-  document.getElementById("selectedType").value = type;
-  const ta = document.getElementById("justification");
-  ta.placeholder = type === "Permiso" ? "Especifique lugar, motivo y tiempo..."
-    : type === "Necesidad" ? "Describa detalladamente su requerimiento..."
-    : "Exponga su idea para la mejora del seminario...";
-}
-
-async function submitRequest() {
-  const justification = document.getElementById("justification").value.trim();
-  if (!justification) {
-      alert("Por favor, escriba una justificación.");
-      return;
-  }
-  const s = currentSession.student;
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = true; 
-  btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span><span>Enviando...</span>';
-
-  const { error } = await sb.from("requests").insert({
-    student_id: s.id,
-    student_name: s.name,
-    type: document.getElementById("selectedType").value,
-    justification,
-    date: document.getElementById("reqDate").value || null,
-    status: "pendiente",
-    comment: "",
+// ─── TIEMPO REAL ─────────────────────────────────────────────────────────────
+function subscribeRealtime() {
+  realtimeChannel = sb.channel("guardias-changes")
+    .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => refetch(true))
+    .subscribe();
+  // respaldo por si realtime no está habilitado para la tabla
+  pollTimer = setInterval(() => refetch(true), 25000);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) refetch(true);
   });
-
-  btn.disabled = false; 
-  btn.innerHTML = '<span>Firmar y Enviar</span><span class="material-symbols-outlined text-sm">edit_note</span>';
-  
-  if (error) { alert("Error al registrar: " + error.message); return; }
-
-  document.getElementById("justification").value = "";
-  document.getElementById("reqDate").value = "";
-  const succ = document.getElementById("formSuccess");
-  succ.classList.remove("hidden");
-  setTimeout(() => succ.classList.add("hidden"), 4000);
-  renderMyRequests();
 }
 
-async function renderMyRequests() {
-  const s = currentSession.student;
-  const { data: all, error } = await sb.from("requests")
-    .select("*")
-    .eq("student_id", s.id)
-    .order("created_at", { ascending: false });
-
-  if (error) return;
-  document.getElementById("myReqTitle").textContent = `Libro de Solicitudes (${all.length})`;
-  const container = document.getElementById("myReqList");
-  
-  if (!all.length) {
-    container.innerHTML = `<div class="bg-surface-container-low border border-dashed border-outline-variant rounded-lg p-12 text-center text-wood-noble italic">
-      <span class="material-symbols-outlined text-4xl block mb-2 opacity-30">inventory_2</span>
-      No se han registrado solicitudes previas.</div>`;
-    return;
+// ─── INIT ────────────────────────────────────────────────────────────────────
+(async function init() {
+  $("searchName").addEventListener("input", (e) => renderNames(e.target.value));
+  const saved = localStorage.getItem("guardias_user");
+  if (saved) {
+    try { me = JSON.parse(saved); } catch { me = null; }
   }
-
-  container.innerHTML = all.map(r => {
-    const st = STATUS_CFG[r.status];
-    const tp = TYPE_CFG[r.type];
-    const d = new Date(r.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"short",year:"numeric"});
-    const datePerm = r.date ? `<div class="mt-2 flex items-center gap-1 text-xs text-wood-noble font-bold"><span class="material-symbols-outlined text-sm">event</span> ${new Date(r.date+"T12:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"long",year:"numeric"})}</div>` : "";
-    const comment = r.comment ? `<div class="mt-3 p-3 bg-primary/5 border-l-4 border-altar-gold text-xs italic text-wood-noble">\u201c${r.comment}\u201d — Rectoría</div>` : "";
-    
-    return `
-      <div class="bg-surface-container-lowest golden-border rounded-lg p-6 hover:shadow-md transition-all">
-        <div class="flex flex-wrap justify-between items-start gap-4 mb-4">
-          <div class="flex items-center gap-3">
-             <div class="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container" style="color:${tp.color}">
-                <span class="material-symbols-outlined">${tp.icon}</span>
-             </div>
-             <div>
-                <h4 class="font-bold text-sm text-primary">${r.type}</h4>
-                <p class="text-[10px] text-outline uppercase font-bold tracking-widest">${d}</p>
-             </div>
-          </div>
-          <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-1" style="background:${st.bg}; color:${st.color}">
-            <span class="material-symbols-outlined text-[14px]">${st.icon}</span> ${st.label}
-          </span>
-        </div>
-        <p class="text-sm text-on-surface-variant leading-relaxed mb-1">${r.justification}</p>
-        ${datePerm}
-        ${comment}
-      </div>`;
-  }).join("");
-}
-
-// ─── ADMIN ─────────────────────────────────────────────────────────────────────
-function showAdminView() {
-  document.getElementById("headerSubtitle").textContent = "Curia del Seminario";
-  document.getElementById("adminView").classList.remove("hidden");
-  document.getElementById("studentView").classList.add("hidden");
-  renderAdminRequests();
-}
-
-function switchAdminTab(tab, btn) {
-  currentAdminTab = tab;
-  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("bg-primary/5", "text-primary"));
-  btn.classList.add("bg-primary/5", "text-primary");
-  
-  document.getElementById("panelSolicitudes").classList.toggle("hidden", tab !== "solicitudes");
-  document.getElementById("panelHistorial").classList.toggle("hidden", tab !== "historial");
-  
-  if (tab === "historial") renderSeminarianGrid();
-  else renderAdminRequests();
-}
-
-function setFilter(f, btn) {
-  currentFilter = f;
-  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active", "border-b-2", "border-primary"));
-  btn.classList.add("active", "border-b-2", "border-primary");
-  renderAdminRequests();
-}
-
-async function renderAdminRequests() {
-  const { data: all, error } = await sb.from("requests")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) return;
-
-  document.getElementById("statPending").textContent  = all.filter(r=>r.status==="pendiente").length;
-  document.getElementById("statApproved").textContent = all.filter(r=>r.status==="aprobado").length;
-  document.getElementById("statRejected").textContent = all.filter(r=>r.status==="rechazado").length;
-
-  const filtered = currentFilter === "todos" ? all : all.filter(r => r.status === currentFilter);
-  const container = document.getElementById("adminReqList");
-  
-  if (!filtered.length) {
-    container.innerHTML = `<div class="bg-surface-container-low border border-dashed border-outline-variant rounded-lg p-12 text-center text-outline">Sin solicitudes registradas en esta categoría.</div>`;
-    return;
+  if (me && STUDENTS.some(s => s.id === me.id)) {
+    mostrarApp();
+  } else {
+    me = null;
+    $("pickerScreen").classList.remove("hidden");
+    $("loadingVeil").classList.add("hidden");
+    renderNames();
   }
-
-  container.innerHTML = filtered.map(r => {
-    const st = STATUS_CFG[r.status];
-    const tp = TYPE_CFG[r.type];
-    const d = new Date(r.created_at).toLocaleDateString("es-ES",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
-    const datePerm = r.date ? `<span class="ml-2 px-2 py-0.5 bg-altar-gold/10 text-altar-gold rounded text-[10px] font-bold">📅 ${new Date(r.date+"T12:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"short"})}</span>` : "";
-    const actions = r.status === "pendiente" ? `
-      <div class="mt-6 pt-6 border-t border-outline-variant flex flex-col sm:flex-row gap-3">
-        <input class="flex-1 bg-surface border-outline-variant rounded-lg text-sm px-4 focus:ring-altar-gold" id="cmt_${r.id}" placeholder="Observaciones o resolución..."/>
-        <div class="flex gap-2">
-            <button class="bg-liturgical-green text-on-primary px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-800 transition-colors flex items-center gap-2" onclick="decide('${r.id}','aprobado')"><span class="material-symbols-outlined text-sm">done</span> Aprobar</button>
-            <button class="bg-error text-on-error px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-900 transition-colors flex items-center gap-2" onclick="decide('${r.id}','rechazado')"><span class="material-symbols-outlined text-sm">close</span> Rechazar</button>
-        </div>
-      </div>` : (r.comment ? `<div class="mt-4 p-3 bg-surface rounded italic text-xs border-l-2 border-altar-gold text-wood-noble">\u201c${r.comment}\u201d</div>` : "");
-    
-    return `
-      <div class="bg-surface-container-lowest golden-border rounded-lg p-6 shadow-sm">
-        <div class="flex flex-wrap justify-between items-center mb-4">
-          <div class="flex items-center gap-3">
-             <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary text-xs font-bold">${initials(r.student_name)}</div>
-             <div>
-                <h4 class="font-bold text-sm text-primary">${r.student_name}</h4>
-                <p class="text-[10px] text-altar-gold uppercase font-bold tracking-widest">${r.type}${datePerm}</p>
-             </div>
-          </div>
-          <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-1" style="background:${st.bg}; color:${st.color}">
-            <span class="material-symbols-outlined text-[14px]">${st.icon}</span> ${st.label}
-          </span>
-        </div>
-        <p class="text-sm text-on-surface-variant italic mb-1">${d}</p>
-        <p class="text-sm text-primary leading-relaxed">${r.justification}</p>
-        ${actions}
-      </div>`;
-  }).join("");
-}
-
-async function decide(id, status) {
-  const cmtEl = document.getElementById("cmt_" + id);
-  const comment = cmtEl ? cmtEl.value.trim() : "";
-  const { error } = await sb.from("requests").update({ status, comment }).eq("id", id);
-  if (error) return;
-  renderAdminRequests();
-  if (currentAdminTab === "historial" && selectedSeminarianId) renderHistorialDetail(selectedSeminarianId);
-}
-
-// ─── HISTORIAL ─────────────────────────────────────────────────────────────────
-async function renderSeminarianGrid() {
-  const q = (document.getElementById("histSearchInput").value || "").toLowerCase();
-  const { data: allReqs } = await sb.from("requests").select("student_id,status");
-  const reqMap = {};
-  (allReqs || []).forEach(r => {
-    if (!reqMap[r.student_id]) reqMap[r.student_id] = {total:0,pend:0,apro:0};
-    reqMap[r.student_id].total++;
-    if (r.status==="pendiente") reqMap[r.student_id].pend++;
-    if (r.status==="aprobado") reqMap[r.student_id].apro++;
-  });
-  
-  const filtered = STUDENTS.filter(s => s.name.toLowerCase().includes(q));
-  const grid = document.getElementById("seminarianGrid");
-  
-  grid.innerHTML = filtered.map(s => {
-    const stats = reqMap[s.id] || {total:0,pend:0,apro:0};
-    const isSelected = s.id === selectedSeminarianId;
-    return `
-      <div onclick="selectSeminarian('${s.id}')" class="cursor-pointer bg-surface-container-lowest golden-border p-4 rounded-lg flex items-center gap-4 transition-all hover:border-primary ${isSelected ? 'ring-2 ring-primary ring-offset-2' : ''}">
-        <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary font-serif font-bold text-lg flex-shrink-0">${initials(s.name)}</div>
-        <div class="min-w-0">
-          <p class="font-bold text-sm text-primary truncate">${s.name}</p>
-          <p class="text-[10px] text-altar-gold font-bold uppercase tracking-widest">${stats.total} Solicitudes · ${stats.apro} Aprob.</p>
-        </div>
-      </div>`;
-  }).join("") || `<div class="col-span-full py-12 text-center text-outline">No se han encontrado seminaristas con ese nombre.</div>`;
-}
-
-function selectSeminarian(id) {
-  selectedSeminarianId = id;
-  renderSeminarianGrid();
-  renderHistorialDetail(id);
-}
-
-async function renderHistorialDetail(id) {
-  const s = STUDENTS.find(x => x.id === id);
-  if (!s) return;
-  const { data: reqs } = await sb.from("requests")
-    .select("*")
-    .eq("student_id", id)
-    .order("created_at", { ascending: false });
-
-  const all = reqs || [];
-  const pend = all.filter(r=>r.status==="pendiente").length;
-  const apro = all.filter(r=>r.status==="aprobado").length;
-  const rech = all.filter(r=>r.status==="rechazado").length;
-  
-  const detail = document.getElementById("historialDetail");
-  detail.classList.remove("hidden");
-  
-  const timeline = all.length ? all.map(r => {
-    const st = STATUS_CFG[r.status];
-    const tp = TYPE_CFG[r.type];
-    const d = new Date(r.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"short",year:"numeric"});
-    return `
-      <div class="relative pl-8 pb-8 border-l border-outline-variant last:pb-0 last:border-l-0">
-        <div class="absolute -left-[5px] top-1 w-[9px] h-[9px] rounded-full" style="background:${st.color}"></div>
-        <div class="flex items-center gap-2 mb-1">
-          <span class="text-[10px] font-bold uppercase tracking-widest text-outline">${d}</span>
-          <span class="text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-tight" style="background:${st.bg}; color:${st.color}">${st.label}</span>
-        </div>
-        <p class="text-sm font-bold text-primary mb-1">${r.type}</p>
-        <p class="text-sm text-on-surface-variant">${r.justification}</p>
-        ${r.comment ? `<p class="mt-2 text-xs italic text-wood-noble bg-surface p-2 rounded">\u201c${r.comment}\u201d</p>` : ''}
-      </div>`;
-  }).join("") : `<div class="py-8 text-center text-outline italic">Expediente sin solicitudes registradas.</div>`;
-
-  detail.innerHTML = `
-    <div class="bg-surface-container-low rounded-xl p-8 golden-border official-shadow">
-      <div class="flex items-center gap-6 mb-8 border-b border-outline-variant pb-6">
-        <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-on-primary font-serif text-2xl">${initials(s.name)}</div>
-        <div>
-          <h4 class="font-headline-sm text-2xl text-primary">${s.name}</h4>
-          <p class="text-altar-gold text-xs font-bold uppercase tracking-widest">Expediente Acad&eacute;mico y de Convivencia</p>
-        </div>
-      </div>
-      
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-        <div class="bg-surface p-4 rounded-lg text-center">
-            <p class="text-[10px] uppercase font-bold text-outline">Total</p>
-            <p class="font-serif text-xl">${all.length}</p>
-        </div>
-        <div class="bg-surface p-4 rounded-lg text-center">
-            <p class="text-[10px] uppercase font-bold text-altar-gold">Pendientes</p>
-            <p class="font-serif text-xl">${pend}</p>
-        </div>
-        <div class="bg-surface p-4 rounded-lg text-center">
-            <p class="text-[10px] uppercase font-bold text-liturgical-green">Aprobadas</p>
-            <p class="font-serif text-xl">${apro}</p>
-        </div>
-        <div class="bg-surface p-4 rounded-lg text-center">
-            <p class="text-[10px] uppercase font-bold text-error">Denegadas</p>
-            <p class="font-serif text-xl">${rech}</p>
-        </div>
-      </div>
-
-      <div class="space-y-2">
-        <h5 class="text-[11px] font-bold uppercase tracking-widest text-wood-noble mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm">history</span> L&iacute;nea de Tiempo
-        </h5>
-        <div class="mt-4">
-            ${timeline}
-        </div>
-      </div>
-    </div>`;
-}
+  await refetch();
+  subscribeRealtime();
+})();
 </script>
-</body></html>
+</body>
+</html>
