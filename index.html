@@ -139,12 +139,14 @@
   .progress-bar { height: 6px; border-radius: 999px; background: var(--surface-high); margin-top: 6px; overflow: hidden; }
   .progress-bar > div { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--altar-gold), var(--wood-noble)); transition: width .5s ease; width: 0%; }
 
+  /* ── Slot machine card ── */
   .draw-card {
     max-width: 620px; margin: 0 auto 8px; text-align: center;
     background: #fff; border: 1px solid var(--outline-variant);
     border-top: 4px solid var(--altar-gold);
     border-radius: 16px; padding: 26px 20px 22px;
     box-shadow: 0 6px 24px rgba(26,18,0,0.09);
+    position: relative; overflow: hidden;
   }
   .draw-card .lbl {
     font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
@@ -152,10 +154,65 @@
     display: flex; align-items: center; justify-content: center; gap: 8px;
   }
   .draw-card .lbl::before, .draw-card .lbl::after { content: ""; height: 1px; width: 46px; background: var(--outline-variant); }
+
+  /* Slot window that clips the rolling names */
+  .slot-window {
+    height: 68px; overflow: hidden; position: relative;
+    margin: 10px auto 0; max-width: 500px;
+  }
+  .slot-window::before, .slot-window::after {
+    content: ""; position: absolute; left: 0; right: 0; height: 24px; z-index: 2; pointer-events: none;
+  }
+  .slot-window::before { top: 0; background: linear-gradient(to bottom, rgba(255,255,255,1), transparent); }
+  .slot-window::after  { bottom: 0; background: linear-gradient(to top,   rgba(255,255,255,1), transparent); }
+  .slot-reel {
+    display: flex; flex-direction: column; align-items: center;
+    transition: transform 0s;
+  }
+  .slot-reel.spinning {
+    transition: none;
+  }
+  .slot-item {
+    height: 68px; display: flex; align-items: center; justify-content: center;
+    font-family: 'Libre Caslon Text', serif;
+    font-size: clamp(19px, 4.8vw, 27px); font-weight: 700;
+    color: var(--ink-deep); white-space: nowrap; padding: 0 12px;
+    width: 100%;
+  }
+  .slot-item.active {
+    color: var(--ink-deep);
+  }
+  .slot-item.blur-item {
+    color: var(--outline); filter: blur(1.5px);
+  }
+
+  /* Avatar for draw */
   .draw-avatar {
-    width: 64px; height: 64px; font-size: 22px; margin: 14px auto 10px;
-    display: flex;
-    box-shadow: 0 4px 12px rgba(44,31,14,0.25);
+    width: 72px; height: 72px; font-size: 24px; margin: 12px auto 0;
+    display: flex; border-radius: 50%;
+    box-shadow: 0 4px 14px rgba(44,31,14,0.28);
+    transition: background .3s ease;
+    position: relative; z-index: 1;
+  }
+  .draw-avatar.pulse {
+    animation: avatarPulse .6s ease;
+  }
+  @keyframes avatarPulse {
+    0%   { transform: scale(0.6); box-shadow: 0 0 0 0 rgba(139,106,62,0.5); }
+    50%  { transform: scale(1.15); box-shadow: 0 0 0 16px rgba(139,106,62,0); }
+    100% { transform: scale(1); }
+  }
+
+  .draw-card .settled-name {
+    font-family: 'Libre Caslon Text', serif; font-size: clamp(21px, 5.4vw, 30px);
+    color: var(--ink-deep); font-weight: 700; margin-top: 8px;
+    animation: settle .45s cubic-bezier(.34,1.56,.64,1);
+    min-height: 1.3em;
+  }
+  @keyframes settle {
+    0%   { transform: scale(.82) translateY(8px); opacity: 0; }
+    70%  { transform: scale(1.06) translateY(-2px); }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
   }
   .draw-name {
     font-family: 'Libre Caslon Text', serif; font-size: clamp(21px, 5.4vw, 30px);
@@ -163,12 +220,8 @@
   }
   .draw-name.rolling { color: var(--outline); }
   .draw-name.settled { animation: settle .45s ease; }
-  @keyframes settle {
-    0% { transform: scale(.92); opacity: .4; }
-    60% { transform: scale(1.04); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  .draw-card .instr { font-size: 13.5px; color: var(--on-surface-variant); margin-top: 8px; }
+
+  .draw-card .instr { font-size: 13.5px; color: var(--on-surface-variant); margin-top: 10px; }
   .draw-card .instr .msym { font-size: 15px; vertical-align: -2px; color: var(--altar-gold); }
   .draw-acts { display: flex; justify-content: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
   .btn-mini {
@@ -180,6 +233,30 @@
   .btn-mini:hover { background: var(--surface-high); }
   .btn-mini .msym { font-size: 15px; }
   .btn-mini.danger { color: var(--error); }
+
+  /* ── Confetti / particle burst ── */
+  .particle {
+    position: fixed; border-radius: 50%; pointer-events: none; z-index: 999;
+    animation: particleFly var(--dur, 1.2s) ease-out forwards;
+  }
+  @keyframes particleFly {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  }
+
+  /* Gold shimmer sweep on reveal */
+  .draw-card::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(139,106,62,0.12) 50%, transparent 70%);
+    transform: translateX(-100%); pointer-events: none; border-radius: 16px;
+  }
+  .draw-card.shimmer::after {
+    animation: shimmerSweep .8s ease forwards;
+  }
+  @keyframes shimmerSweep {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
 
   /* ── Semanas y tarjetas ── */
   .week-title {
@@ -431,10 +508,17 @@
       <div class="progress-bar"><div id="progressFill"></div></div>
     </div>
 
-    <div class="draw-card">
+    <div class="draw-card" id="drawCard">
       <div class="lbl">Le toca elegir a</div>
       <span class="avatar draw-avatar" id="drawAvatar">?</span>
-      <div class="draw-name" id="drawName">—</div>
+
+      <!-- Slot machine window -->
+      <div class="slot-window" id="slotWindow">
+        <div class="slot-reel" id="slotReel">
+          <div class="slot-item" id="drawName">—</div>
+        </div>
+      </div>
+
       <p class="instr"><span class="msym">arrow_downward</span> Asígnele una de las guardias disponibles</p>
       <div class="draw-acts">
         <button class="btn-mini" onclick="sortearOtro()"><span class="msym">shuffle</span>Sortear otro nombre</button>
@@ -491,37 +575,28 @@ const TABLE = "guardias_agosto";
 
 // ─── SEMINARISTAS ────────────────────────────────────────────────────────────
 const STUDENTS = [
-  {id:"s01", name:"Alfenyer Alfonso Fernández Luzardo"},
-  {id:"s02", name:"Cesar David Petit Hansen"},
-  {id:"s03", name:"Mario José Soto Villasmil"},
-  {id:"s04", name:"Yorby Javier Suárez Suárez"},
-  {id:"s05", name:"Jorge Reyes"},
-  {id:"s06", name:"Osmán José Vargas Quintero"},
-  {id:"s07", name:"Luis Andrés Olivares Portillo"},
-  {id:"s08", name:"Rances Isaac Mercado Osorio"},
-  {id:"s09", name:"Luis Ángel Benítez Moran"},
-  {id:"s10", name:"Elio Barboza"},
-  {id:"s11", name:"Víctor Julio Suárez"},
-  {id:"s12", name:"Yorvi Jose Sierra Lopez"},
-  {id:"s13", name:"Luis Carlos Polanco Fernández"},
-  {id:"s14", name:"José Acosta"},
-  {id:"s15", name:"Rixio García"},
-  {id:"s16", name:"Jesús Tudares"},
-  {id:"s17", name:"Jorge Luis Villalobos González"},
+  {id:"s01", name:"Armando Celis"},
+  {id:"s02", name:"Alfenyer Fernández"},
+  {id:"s03", name:"José Miguel Sierra"},
+  {id:"s04", name:"Alejandro Rubio"},
+  {id:"s05", name:"Osman Vargas"},
+  {id:"s06", name:"Yorbi Sierra"},
+  {id:"s07", name:"Rances Mercado"},
+  {id:"s08", name:"Luis Polanco"},
+  {id:"s09", name:"Gregory García"},
+  {id:"s10", name:"Mario Soto"},
+  {id:"s11", name:"Jorge Reyes"},
+  {id:"s12", name:"Luis Ángel Benítez"},
+  {id:"s13", name:"José Acosta"},
+  {id:"s14", name:"Dany Araujo"},
+  {id:"s15", name:"David Paz"},
+  {id:"s16", name:"Elio Barboza"},
+  {id:"s17", name:"Andrés Araviche"},
   {id:"s18", name:"Nixon Torrealba"},
-  {id:"s19", name:"Jossué Alejandro Hernández Miquilena"},
-  {id:"s20", name:"Paul David Urdaneta Berrueta"},
-  {id:"s21", name:"Ángel de Jesús Machado Villalobos"},
-  {id:"s22", name:"Gregori José García Hernández"},
-  {id:"s23", name:"Israel Junior Barboza Pérez"},
-  {id:"s24", name:"Armando de Jesús Celis Prieto"},
-  {id:"s25", name:"Ricardo Andrés Márquez Colina"},
-  {id:"s26", name:"Andrés Alfonso Araviche Chiquito"},
-  {id:"s27", name:"Dany Rafael Araujo Guedez"},
-  {id:"s28", name:"Ricardo José Morillo Medina"},
-  {id:"s29", name:"Alejandro Rubio"},
-  {id:"s30", name:"Jose Eloy Castillo Pirela"},
-  {id:"s31", name:"José Miguel Sierra Nava"},
+  {id:"s19", name:"Rixio García"},
+  {id:"s20", name:"Ricardo Márquez"},
+  {id:"s21", name:"Jesús Tudares"},
+  {id:"s22", name:"Paul Urdaneta"},
 ];
 const byId = Object.fromEntries(STUDENTS.map(s => [s.id, s]));
 
@@ -588,26 +663,25 @@ function showScreen(name) {
 }
 
 // ─── CUPOS ───────────────────────────────────────────────────────────────────
-function totalPersonas() {
-  return participants ? participants.length : Math.max(selections.length, 1);
+// Guardias de semana (lunes-viernes): 2 personas.
+// Guardias de fin de semana (viernes-lunes): 3 personas — son las más pesadas.
+function cupoParaGuardia(gid) {
+  const g = GUARDIAS.find(x => x.id === gid);
+  return g && g.tipo === "finde" ? 3 : 2;
 }
-function cupoBase() { return Math.max(1, Math.floor(totalPersonas() / GUARDIAS.length)); }
-function cupoMax()  { return Math.max(1, Math.ceil(totalPersonas() / GUARDIAS.length)); }
 function countsPorGuardia() {
   const counts = {};
   GUARDIAS.forEach(g => counts[g.id] = 0);
   selections.forEach(s => { if (counts[s.guardia_id] !== undefined) counts[s.guardia_id]++; });
   return counts;
 }
-// Una guardia acepta a alguien si está bajo el cupo base; el puesto adicional
-// solo se habilita cuando TODAS las guardias ya alcanzaron su cupo base.
+// Estado: libre si hay cupo, llena si completó su límite, bloqueada nunca
+// (con cupos fijos por tipo no hace falta el mecanismo de "esperar a que todas tengan base").
 function estadoGuardia(gid, counts) {
   const c = counts[gid];
-  const base = cupoBase(), max = cupoMax();
-  if (c < base) return "libre";
+  const max = cupoParaGuardia(gid);
   if (c >= max) return "llena";
-  const todasConBase = GUARDIAS.every(g => counts[g.id] >= base);
-  return todasConBase ? "libre" : "bloqueada";
+  return "libre";
 }
 
 // ─── 1. PANTALLA DE PARTICIPANTES ────────────────────────────────────────────
@@ -631,10 +705,9 @@ function renderSetup() {
   $("selCount").textContent = n;
   $("toggleAllBtn").textContent = n === STUDENTS.length ? "Desmarcar todos" : "Marcar todos";
   $("startBtn").disabled = n === 0;
-  const base = Math.max(1, Math.floor(n / 8)), max = Math.max(1, Math.ceil(n / 8));
   $("setupHint").textContent = n === 0
     ? "Marque al menos un seminarista."
-    : `Se repartirán ${n} seminaristas en 8 guardias (${base === max ? base : base + " a " + max} por guardia).`;
+    : `Se repartirán ${n} seminaristas: 2 por guardia de semana y 3 por guardia de fin de semana (cupo total: ${4*2 + 4*3} plazas).`;
 }
 function toggleTodos() {
   if (checked.size === STUDENTS.length) checked.clear();
@@ -660,29 +733,113 @@ function sortear(excluir) {
   current = source[Math.floor(Math.random() * source.length)];
 }
 
+/* ── Animación de ruleta (slot machine) ── */
 function animarNombre() {
-  const el = $("drawName"), av = $("drawAvatar");
+  const reel   = $("slotReel");
+  const nameEl = $("drawName");
+  const av     = $("drawAvatar");
+  const card   = $("drawCard");
   if (!current) return;
   if (rollTimer) { clearInterval(rollTimer); rollTimer = null; }
   const target = byId[current];
   rolling = true;
-  el.classList.add("rolling");
-  el.classList.remove("settled");
-  av.textContent = "?"; av.style.background = "var(--outline)";
+
+  // Reset avatar
+  av.textContent = "?";
+  av.style.background = "var(--outline)";
+  av.classList.remove("pulse");
+  card.classList.remove("shimmer");
+
+  // Build a shuffled deck of names for the reel
   const names = participants.map(id => byId[id].name);
-  let ticks = 0;
+  const TOTAL_ITEMS = 28; // number of "cards" scrolled
+  const deck = [];
+  for (let i = 0; i < TOTAL_ITEMS; i++) {
+    deck.push(names[Math.floor(Math.random() * names.length)]);
+  }
+  deck.push(target.name); // final landing
+
+  // Build reel DOM
+  reel.innerHTML = "";
+  reel.classList.add("spinning");
+  deck.forEach((n, idx) => {
+    const div = document.createElement("div");
+    div.className = "slot-item" + (idx === deck.length - 1 ? " active" : " blur-item");
+    div.textContent = n;
+    reel.appendChild(div);
+  });
+
+  // Start from top, animate downward to show the last item centered
+  const itemH = 68;
+  const targetY = -(deck.length - 1) * itemH;
+
+  // Phase 1: fast random scrolling
+  let pos = 0;
+  let speed = itemH * 1.5; // px per tick
+  const TICK = 60;
+  let elapsed = 0;
+  const DURATION = 1600; // ms total spin
+
+  reel.style.transform = "translateY(0)";
+
   rollTimer = setInterval(() => {
-    el.textContent = names[Math.floor(Math.random() * names.length)];
-    if (++ticks >= 14) {
+    elapsed += TICK;
+    const progress = elapsed / DURATION;
+    // Ease-out: slow down toward the end
+    const eased = 1 - Math.pow(1 - Math.min(progress, 1), 3);
+    const currentY = targetY * eased;
+    reel.style.transform = `translateY(${currentY}px)`;
+
+    if (elapsed >= DURATION) {
       clearInterval(rollTimer); rollTimer = null;
-      el.classList.remove("rolling");
-      el.classList.add("settled");
-      el.textContent = target.name;
+      reel.style.transform = `translateY(${targetY}px)`;
+      reel.classList.remove("spinning");
+
+      // Update the static drawName (used elsewhere)
+      nameEl.textContent = target.name;
+
+      // Avatar reveal with pulse
       av.textContent = initials(target.name);
       av.style.background = avatarColor(target.id);
+      void av.offsetWidth; // reflow
+      av.classList.add("pulse");
+
+      // Gold shimmer sweep
+      void card.offsetWidth;
+      card.classList.add("shimmer");
+
+      // Particle burst
+      spawnParticles(av);
+
       rolling = false;
     }
-  }, 75);
+  }, TICK);
+}
+
+function spawnParticles(anchor) {
+  const rect = anchor.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top  + rect.height / 2;
+  const colors = ["#8b6a3e","#c8a85a","#5a4530","#2e7d32","#d6c59f","#f3e1b9"];
+  const count = 22;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("div");
+    p.className = "particle";
+    const angle = (i / count) * 360;
+    const dist  = 50 + Math.random() * 80;
+    const tx = Math.cos(angle * Math.PI / 180) * dist + "px";
+    const ty = Math.sin(angle * Math.PI / 180) * dist + "px";
+    const size = 5 + Math.random() * 7;
+    const dur  = (0.8 + Math.random() * 0.6).toFixed(2) + "s";
+    Object.assign(p.style, {
+      left: cx + "px", top: cy + "px",
+      width: size + "px", height: size + "px",
+      background: colors[i % colors.length],
+      "--tx": tx, "--ty": ty, "--dur": dur,
+    });
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), parseFloat(dur) * 1000 + 100);
+  }
 }
 
 function sortearOtro() {
@@ -702,6 +859,7 @@ function renderDraw() {
 
   if (current && byId[current] && !rolling) {
     $("drawName").textContent = byId[current].name;
+    $("slotReel").innerHTML = `<div class="slot-item active">${byId[current].name}</div>`;
     $("drawAvatar").textContent = initials(byId[current].name);
     $("drawAvatar").style.background = avatarColor(current);
   }
@@ -724,7 +882,7 @@ function renderDraw() {
 function cardGuardia(g, counts) {
   const c = counts[g.id];
   const estado = estadoGuardia(g.id, counts);
-  const base = cupoBase(), max = cupoMax();
+  const max = cupoParaGuardia(g.id);
   const members = selections
     .filter(s => s.guardia_id === g.id)
     .sort((a, b) => a.seminarista_nombre.localeCompare(b.seminarista_nombre));
@@ -732,9 +890,10 @@ function cardGuardia(g, counts) {
   const card = document.createElement("div");
   card.className = `gcard ${g.tipo}`;
 
-  const tipoLabel = g.tipo === "semana"
-    ? `<span class="type-chip"><span class="msym">wb_sunny</span>Guardia de semana</span>`
-    : `<span class="type-chip"><span class="msym">weekend</span>Fin de semana</span>`;
+  const esFinde = g.tipo === "finde";
+  const tipoLabel = esFinde
+    ? `<span class="type-chip"><span class="msym">weekend</span>Fin de semana · ${max} plazas</span>`
+    : `<span class="type-chip"><span class="msym">wb_sunny</span>Guardia de semana · ${max} plazas</span>`;
 
   const memberHtml = members.length
     ? members.map(m => `
@@ -745,13 +904,11 @@ function cardGuardia(g, counts) {
     : `<div class="empty"><span class="msym">person_add</span>Sin asignar todavía</div>`;
 
   const dots = Array.from({length: max}, (_, i) =>
-    `<span class="slot-dot${i >= base ? " bonus" : ""}${i < c ? " full" : ""}"></span>`).join("");
+    `<span class="slot-dot${i < c ? " full" : ""}"></span>`).join("");
 
   let action;
   if (estado === "llena") {
     action = `<button class="btn-take is-full" disabled><span class="msym">lock</span>Completa</button>`;
-  } else if (estado === "bloqueada") {
-    action = `<div class="locked-hint"><span class="msym">hourglass_top</span>Se abre cuando todas tengan ${base}</div>`;
   } else {
     action = `<button class="btn-take" onclick="pedirAsignar('${g.id}')"><span class="msym">assignment_ind</span>Asignar aquí</button>`;
   }
