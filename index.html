@@ -362,10 +362,50 @@
     padding: 5px 0; border-top: 1px dashed var(--surface-high);
   }
   .sched-member .avatar { width: 26px; height: 26px; font-size: 10.5px; }
-  .sched-member .rm { margin-left: auto; color: var(--outline-variant); display: inline-flex; }
+  .sched-member .member-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sched-member .member-acts { margin-left: auto; display: flex; gap: 2px; flex: none; }
+  .sched-member .mv { color: var(--altar-gold); display: inline-flex; }
+  .sched-member .mv:hover { color: var(--wood-noble); }
+  .sched-member .rm { color: var(--outline-variant); display: inline-flex; }
   .sched-member .rm:hover { color: var(--error); }
-  .sched-member .rm .msym { font-size: 18px; }
+  .sched-member .mv .msym, .sched-member .rm .msym { font-size: 18px; }
   .sched-card .none { font-size: 13px; font-style: italic; color: var(--outline); padding-top: 4px; }
+
+  /* ── Modal de mover ── */
+  #moveModal .modal { max-width: 500px; }
+  .move-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .move-header .avatar { width: 38px; height: 38px; font-size: 14px; flex: none; }
+  .move-header .info { flex: 1; }
+  .move-header .info b { display: block; font-size: 15px; color: var(--ink-deep); }
+  .move-header .info span { font-size: 12.5px; color: var(--on-surface-variant); }
+  .move-guards { display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; }
+  .move-option {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface-low); border: 1.5px solid var(--outline-variant);
+    border-radius: 12px; padding: 10px 14px; cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .move-option:hover { border-color: var(--altar-gold); background: var(--gold-bg); }
+  .move-option.is-full { opacity: .4; cursor: not-allowed; pointer-events: none; }
+  .move-option.current-guard { border-color: var(--liturgical-green); background: var(--green-bg); cursor: not-allowed; pointer-events: none; }
+  .move-option .mo-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--gold-bg); display: flex; align-items: center; justify-content: center;
+    flex: none;
+  }
+  .move-option.finde-opt .mo-icon { background: var(--surface-container); }
+  .move-option .mo-icon .msym { font-size: 18px; color: var(--altar-gold); }
+  .move-option.finde-opt .mo-icon .msym { color: var(--wood-noble); }
+  .move-option .mo-info { flex: 1; }
+  .move-option .mo-info b { display: block; font-size: 13.5px; color: var(--ink-deep); }
+  .move-option .mo-info span { font-size: 12px; color: var(--on-surface-variant); }
+  .move-option .mo-badge {
+    font-size: 11px; font-weight: 700; padding: 3px 9px;
+    border-radius: 999px; flex: none;
+  }
+  .mo-badge.libre { background: var(--green-bg); color: var(--liturgical-green); }
+  .mo-badge.llena { background: var(--surface-high); color: var(--outline); }
+  .mo-badge.aqui  { background: var(--green-bg); color: var(--liturgical-green); }
 
   /* ── Modal ── */
   .modal-back {
@@ -558,6 +598,21 @@
       <button class="btn-ghost" onclick="cerrarModal()">Cancelar</button>
       <button class="btn-solid" id="modalOk"></button>
     </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL MOVER ═══════════ -->
+<div id="moveModal" class="modal-back hidden" onclick="if(event.target.id==='moveModal')cerrarMoveModal()">
+  <div class="modal" style="max-width:500px">
+    <div class="move-header">
+      <span class="avatar draw-avatar" id="moveAvatar" style="width:38px;height:38px;font-size:14px">?</span>
+      <div class="info">
+        <b id="moveName"></b>
+        <span id="moveFrom"></span>
+      </div>
+      <button class="btn-ghost" style="padding:6px 10px" onclick="cerrarMoveModal()"><span class="msym">close</span></button>
+    </div>
+    <div class="move-guards" id="moveGuardList"></div>
   </div>
 </div>
 
@@ -1032,8 +1087,11 @@ function mostrarFinal() {
       ${members.length ? members.map(m => `
         <div class="sched-member">
           <span class="avatar" style="background:${avatarColor(m.seminarista_id)}">${initials(m.seminarista_nombre)}</span>
-          <span>${m.seminarista_nombre}</span>
-          <button class="rm" title="Quitar de esta guardia" onclick="pedirQuitar('${m.seminarista_id}')"><span class="msym">close</span></button>
+          <span class="member-name">${m.seminarista_nombre}</span>
+          <div class="member-acts">
+            <button class="mv" title="Mover a otra guardia" onclick="pedirMover('${m.seminarista_id}')"><span class="msym">swap_horiz</span></button>
+            <button class="rm" title="Quitar de esta guardia" onclick="pedirQuitar('${m.seminarista_id}')"><span class="msym">close</span></button>
+          </div>
         </div>`).join("") : '<div class="none">Sin asignaciones</div>'}
     `;
     grid.appendChild(card);
@@ -1064,6 +1122,81 @@ function pedirQuitar(sid) {
         navLock = false;
       }
     }, true);
+}
+
+// ─── MOVER A OTRA GUARDIA ──────────────────────────────────────────────────────────────
+function pedirMover(sid) {
+  const row = selections.find(s => s.seminarista_id === sid);
+  if (!row) return;
+  const counts = countsPorGuardia();
+  const mb = $("moveModal");
+
+  // Header
+  $("moveAvatar").textContent  = initials(row.seminarista_nombre);
+  $("moveAvatar").style.background = avatarColor(row.seminarista_id);
+  $("moveName").textContent   = row.seminarista_nombre;
+  const gActual = GUARDIAS.find(x => x.id === row.guardia_id);
+  $("moveFrom").textContent   = `Actualmente en: ${gActual ? gActual.titulo : ""}`;
+
+  // Guard list
+  const list = $("moveGuardList");
+  list.innerHTML = "";
+  GUARDIAS.forEach(g => {
+    const max    = cupoParaGuardia(g.id);
+    const cnt    = counts[g.id];
+    const isCurrent = g.id === row.guardia_id;
+    const isFull    = !isCurrent && cnt >= max;
+    const esFinde   = g.tipo === "finde";
+
+    const opt = document.createElement("div");
+    opt.className = `move-option${esFinde ? " finde-opt" : ""}${isCurrent ? " current-guard" : ""}${isFull ? " is-full" : ""}`;
+    opt.innerHTML = `
+      <div class="mo-icon"><span class="msym">${esFinde ? "weekend" : "wb_sunny"}</span></div>
+      <div class="mo-info">
+        <b>${g.titulo}</b>
+        <span>${cnt}/${max} asignados · ${esFinde ? "Fin de semana" : "Guardia de semana"}</span>
+      </div>
+      <span class="mo-badge ${isCurrent ? "aqui" : isFull ? "llena" : "libre"}">
+        ${isCurrent ? "Aquí está" : isFull ? "Completa" : "Disponible"}
+      </span>`;
+    if (!isCurrent && !isFull) {
+      opt.onclick = () => moverA(sid, g.id);
+    }
+    list.appendChild(opt);
+  });
+
+  mb.classList.remove("hidden");
+}
+
+async function moverA(sid, nuevaGid) {
+  const row = selections.find(s => s.seminarista_id === sid);
+  if (!row) return;
+  cerrarMoveModal();
+  navLock = true;
+  try {
+    // Verify destination still has room
+    await refetch(true);
+    const counts = countsPorGuardia();
+    if (estadoGuardia(nuevaGid, counts) === "llena") {
+      toast("Esa guardia ya se llenó.", true);
+      navLock = false;
+      return;
+    }
+    const { error } = await sb.from(TABLE)
+      .update({ guardia_id: nuevaGid })
+      .eq("seminarista_id", sid);
+    if (error) { console.error(error); toast("No se pudo mover.", true); return; }
+    await refetch(true);
+    const gNueva = GUARDIAS.find(x => x.id === nuevaGid);
+    toast(`${shortName(row.seminarista_nombre)} movido a ${gNueva ? gNueva.titulo : ""}. ✓`);
+    mostrarFinal();
+  } finally {
+    navLock = false;
+  }
+}
+
+function cerrarMoveModal() {
+  $("moveModal").classList.add("hidden");
 }
 
 function volverAlSorteo() {
