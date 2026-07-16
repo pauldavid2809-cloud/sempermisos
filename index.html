@@ -1009,34 +1009,50 @@ function pedirAsignar(gid) {
 
 async function asignar(gid) {
   cerrarModal();
+  // Detener animación en curso si existiera
+  if (rollTimer) { clearInterval(rollTimer); rollTimer = null; }
+  rolling = false;
+
   const quien = current;
   navLock = true;
   try {
     await refetch(true);
+
+    // Verificar que este seminarista no tenga ya guardia
     if (selections.some(s => s.seminarista_id === quien)) {
       toast("Este seminarista ya tiene guardia.", true);
       navLock = false;
       irADondeToque();
       return;
     }
+
+    // Verificar que la guardia aún tenga cupo
     if (estadoGuardia(gid, countsPorGuardia()) !== "libre") {
       toast("Esa guardia ya no está disponible.", true);
+      navLock = false;
       renderDraw();
       return;
     }
+
     const { error } = await sb.from(TABLE).upsert(
       { seminarista_id: quien, seminarista_nombre: byId[quien].name, guardia_id: gid },
       { onConflict: "seminarista_id" }
     );
     if (error) { console.error(error); toast("No se pudo guardar. Intente de nuevo.", true); return; }
+
     undoStack.push(quien);
     await refetch(true);
     const g = GUARDIAS.find(x => x.id === gid);
     toast(`${shortName(byId[quien].name)} → ${g.titulo}`);
-    if (pendientes().length) {
-      sortear();
-      renderDraw();
-      animarNombre();
+
+    const pend = pendientes();
+    if (pend.length) {
+      sortear();                          // elige nuevo current
+      if (!current) {                     // sanity check
+        current = pend[0];
+      }
+      renderDraw();                       // reconstruye el DOM del reel
+      animarNombre();                     // lanza animación con el DOM fresco
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       current = null;
