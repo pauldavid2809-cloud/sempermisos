@@ -561,7 +561,11 @@
     <p class="sub2">Agosto 2026 · Lunes libres</p>
     <div class="list-tools">
       <span><b id="selCount">0</b> seleccionados</span>
-      <button id="toggleAllBtn" onclick="toggleTodos()">Desmarcar todos</button>
+      <span style="display:flex;gap:14px">
+        <button onclick="marcarGrupo(1)">Primer grupo</button>
+        <button onclick="marcarGrupo(2)">Nuevos</button>
+        <button id="toggleAllBtn" onclick="toggleTodos()">Todos</button>
+      </span>
     </div>
     <div class="names-list" id="namesList"></div>
     <div class="setup-foot">
@@ -613,6 +617,7 @@
     <div class="final-acts">
       <button class="btn-big" onclick="descargarPDF()"><span class="msym">picture_as_pdf</span>Descargar en PDF</button>
       <button class="btn-mini hidden" id="continueBtn" onclick="volverAlSorteo()"><span class="msym">casino</span>Continuar el sorteo</button>
+      <button class="btn-mini hidden" id="nextGroupBtn" onclick="sortearSiguienteGrupo()"><span class="msym">casino</span>Sortear al siguiente grupo</button>
     </div>
     <div class="sched-grid" id="schedGrid"></div>
     <div style="text-align:center;margin-top:26px">
@@ -701,6 +706,9 @@ const STUDENTS = [
   {id:"s30", name:"Samuel Pérez"},
 ];
 const byId = Object.fromEntries(STUDENTS.map(s => [s.id, s]));
+// Segundo grupo: los 8 que se sortean después del primer grupo de 22.
+const GRUPO2 = new Set(["s23","s24","s25","s26","s27","s28","s29","s30"]);
+const GRUPO1_IDS = STUDENTS.filter(s => !GRUPO2.has(s.id)).map(s => s.id);
 
 // ─── GUARDIAS DE AGOSTO 2026 ─────────────────────────────────────────────────
 // Lunes libres. Semana: martes 3PM → viernes 9AM. Fin de semana: viernes 3PM → lunes 9AM.
@@ -807,7 +815,7 @@ function renderSetup() {
   });
   const n = checked.size;
   $("selCount").textContent = n;
-  $("toggleAllBtn").textContent = n === STUDENTS.length ? "Desmarcar todos" : "Marcar todos";
+  $("toggleAllBtn").textContent = n === STUDENTS.length ? "Ninguno" : "Todos";
   $("startBtn").disabled = n === 0;
   $("setupHint").textContent = n === 0
     ? "Marque al menos un seminarista."
@@ -816,6 +824,10 @@ function renderSetup() {
 function toggleTodos() {
   if (checked.size === STUDENTS.length) checked.clear();
   else checked = new Set(STUDENTS.map(s => s.id));
+  renderSetup();
+}
+function marcarGrupo(g) {
+  checked = new Set(g === 2 ? [...GRUPO2] : GRUPO1_IDS);
   renderSetup();
 }
 function comenzarSorteo() {
@@ -1157,13 +1169,23 @@ function mostrarFinal() {
   showScreen("finalScreen");
   const pend = participants ? pendientes().length : 0;
   const completo = participants && pend === 0;
-  $("finalIcon").textContent = completo ? "verified" : "pending";
+  const asignados = new Set(selections.map(s => s.seminarista_id));
+  const siguienteGrupo = STUDENTS
+    .filter(s => !asignados.has(s.id) && !(participants || []).includes(s.id));
+  $("finalIcon").textContent = completo && !siguienteGrupo.length ? "verified" : "pending";
   $("finalSub").innerHTML = completo
-    ? `Todos los seminaristas tienen su guardia asignada. Lunes libres · Semana: martes 3:00 PM a viernes 9:00 AM · Fin de semana: viernes 3:00 PM a lunes 9:00 AM.`
+    ? (siguienteGrupo.length
+        ? `<span class="warn">Grupo completado.</span> Quedan ${siguienteGrupo.length} seminaristas del siguiente grupo por sortear.`
+        : `Todos los seminaristas tienen su guardia asignada. Lunes libres · Semana: martes 3:00 PM a viernes 9:00 AM · Fin de semana: viernes 3:00 PM a lunes 9:00 AM.`)
     : participants
       ? `<span class="warn">Sorteo en curso:</span> faltan ${pend} seminaristas por asignar.`
       : `Distribución registrada hasta ahora. Lunes libres · Entrada 3:00 PM · Salida 9:00 AM.`;
   $("continueBtn").classList.toggle("hidden", !(participants && pend > 0));
+  const ngBtn = $("nextGroupBtn");
+  ngBtn.classList.toggle("hidden", !(participants && completo && siguienteGrupo.length));
+  if (siguienteGrupo.length) {
+    ngBtn.innerHTML = `<span class="msym">casino</span>Sortear al siguiente grupo (${siguienteGrupo.length})`;
+  }
 
   const grid = $("schedGrid");
   grid.innerHTML = "";
@@ -1392,6 +1414,18 @@ function volverAlSorteo() {
   animarNombre();
 }
 
+// Suma al sorteo a los seminaristas que aún no participaban (el siguiente grupo)
+// sin tocar las guardias ya asignadas.
+function sortearSiguienteGrupo() {
+  const asignados = new Set(selections.map(s => s.seminarista_id));
+  const faltan = STUDENTS.map(s => s.id)
+    .filter(id => !asignados.has(id) && !(participants || []).includes(id));
+  if (!faltan.length) { mostrarFinal(); return; }
+  participants = [...(participants || []), ...faltan];
+  localStorage.setItem(LS_PART, JSON.stringify(participants));
+  volverAlSorteo();
+}
+
 function pedirReinicio() {
   abrirModal("Reiniciar el sorteo",
     `Se borrarán <b>todas</b> las asignaciones de guardias de agosto y se volverá a empezar desde cero. ¿Está seguro, Padre?`,
@@ -1563,7 +1597,8 @@ function subscribeRealtime() {
     try { participants = JSON.parse(saved); } catch { participants = null; }
     if (!Array.isArray(participants) || !participants.every(id => byId[id])) participants = null;
   }
-  checked = participants ? new Set(participants) : new Set(STUDENTS.map(s => s.id));
+  // Hoy se sortea primero el primer grupo (los 22); los nuevos van después.
+  checked = participants ? new Set(participants) : new Set(GRUPO1_IDS);
   await refetch();
   $("loadingVeil").classList.add("hidden");
   if (dbReady) irADondeToque(true);
